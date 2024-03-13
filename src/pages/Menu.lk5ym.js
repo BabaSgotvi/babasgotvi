@@ -2,6 +2,7 @@ import wixLocationFrontend from "wix-location-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import { local, session, memory } from "wix-storage-frontend";
+import * as globalData from "public/globalData";
 // vars
 let providerId;
 let cartList = [];
@@ -18,51 +19,50 @@ $w.onReady(async function () {
   });
   function listFood() {
     $w("#menuRepeater").onItemReady(($w, itemData, index) => {
-        let price;
-        let rating;
-        let maxAmountPerDay;
+      let price;
+      let rating;
+      let maxAmountPerDay;
 
       wixData.query("FoodList").eq("_id", itemData._id).find().then((results) => {
-          let foodOwnerId = results.items[0].owner;
-          if (foodOwnerId != providerId) {
-            $w("#foodItem").collapse();
-            return;
-          }
-          price = results.items[0].price;
-          priceList[index] = price;
-          rating = results.items[0].rating;
-          maxAmountPerDay = results.items[0].maxPerDay;
-          $w("#price").text = "" + price + " лв.";
-          $w("#rating").text = "" + rating + "%";
-        });
+        let foodOwnerId = results.items[0].owner;
+        if (foodOwnerId != providerId) {
+          $w("#foodItem").collapse();
+          return;
+        }
+        price = results.items[0].price;
+        priceList[index] = price;
+        rating = results.items[0].rating;
+        maxAmountPerDay = results.items[0].maxPerDay;
+        $w("#price").text = "" + price + " лв.";
+        $w("#rating").text = "" + rating + "%";
+      });
       $w("#minusButton").collapse();
       $w("#foodAmountText").collapse();
-      $w("#foodProfileHitTrigger").onMouseIn(() => 
-      {
-          session.removeItem("previewImage");
-          session.setItem("previewImage", itemData.image);
-          session.setItem("previewName", itemData.title);
-          session.setItem("previewDescription", itemData.description);
-          session.setItem("previewIngredients", itemData.ingredients);
-          session.setItem("previewPrice", itemData.price);
-          session.setItem("previewPortionSizes", itemData.portionSizes);
-          session.setItem("previewMaxAmount", itemData.maxPerDay);
-          session.setItem("previewAmount", foodAmount[index]);
+      $w("#foodProfileHitTrigger").onMouseIn(() => {
+        session.removeItem("previewImage");
+        session.setItem("previewImage", itemData.image);
+        session.setItem("previewName", itemData.title);
+        session.setItem("previewDescription", itemData.description);
+        session.setItem("previewIngredients", itemData.ingredients);
+        session.setItem("previewPrice", itemData.price);
+        session.setItem("previewPortionSizes", itemData.portionSizes);
+        session.setItem("previewMaxAmount", itemData.maxPerDay);
+        session.setItem("previewAmount", foodAmount[index]);
       });
       $w("#plusButton").onClick(() => {
         //
         if (!cartList.includes(itemData._id)) cartList[index] = itemData._id;
         foodAmount[index] = (foodAmount[index] || 0) + 1;
 
-            if (foodAmount[index] >= maxAmountPerDay) {
-              foodAmount[index] = maxAmountPerDay;
-              $w("#plusButton").collapse();
-            }
-            $w("#foodAmountText").text = "" + foodAmount[index];
-            $w("#minusButton").expand();
-            $w("#foodAmountText").expand();
-            session.setItem("previewAmount", foodAmount[index]);
-            listCart(itemData._id, index);
+        if (foodAmount[index] >= maxAmountPerDay) {
+          foodAmount[index] = maxAmountPerDay;
+          $w("#plusButton").collapse();
+        }
+        $w("#foodAmountText").text = "" + foodAmount[index];
+        $w("#minusButton").expand();
+        $w("#foodAmountText").expand();
+        session.setItem("previewAmount", foodAmount[index]);
+        listCart(itemData._id, index);
         //
       });
       $w("#minusButton").onClick(() => {
@@ -79,7 +79,7 @@ $w.onReady(async function () {
           listCart(itemData._id, index);
         }
       });
-       session.setItem("previewAmount", foodAmount[index]);
+      session.setItem("previewAmount", foodAmount[index]);
       listCart(itemData._id, index);
       $w("#foodAmountText").text = "" + foodAmount[index];
     });
@@ -91,7 +91,7 @@ $w.onReady(async function () {
         let grossPrice = Number(
           (priceList[index] * foodAmount[index]).toFixed(2)
         );
-        $w("#text10").text = priceList[index] + " лв. x " + foodAmount[index] + " бр. = " +grossPrice + " лв.";
+        $w("#text10").text = priceList[index] + " лв. x " + foodAmount[index] + " бр. = " + grossPrice + " лв.";
         if (cartList[index] == id) {
           $w("#checkoutedFoodItem").expand();
         } else {
@@ -114,13 +114,11 @@ $w.onReady(async function () {
       loopIndex++;
     }
     $w("#finalSum").text = "Сума: " + finalPrice + " лв.";
-    if(finalPrice <= 0)
-    {
+    if (finalPrice <= 0) {
       finalPrice = 0;
       $w("#orderButton").disable();
     }
-    else
-    {
+    else {
       $w("#orderButton").enable();
     }
   }
@@ -137,6 +135,6 @@ $w.onReady(async function () {
   }
 });
 export function foodProfileLightBox_closed() {
-    // Run your function here
-    console.log("Lightbox closed!");
+  // Run your function here
+  console.log("Lightbox closed!");
 }

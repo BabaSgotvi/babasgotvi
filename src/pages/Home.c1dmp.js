@@ -7,6 +7,8 @@ import wixData from 'wix-data';
 import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
+import * as globalData from "public/globalData";
+
 
 let allDates;
 //
@@ -33,33 +35,35 @@ function refreshListed() {
             $w("#repeater1").forEachItem(($w, itemData, index) => {
                 $w("#providerBox").expand();
                 const providerId = itemData.provider;
-                console.log("fetched: " + memory.getItem(providerId + "_fetched"));
-                if (memory.getItem(providerId + "_fetched") == providerId) {
-                    console.log("entered!");
-                    $w("#nameText").text = memory.getItem(providerId + "_name");
-                    $w("#profilePic").src = memory.getItem(providerId + "_profilePic");
-                    $w("#frontPageImage").src = memory.getItem(providerId + "_frontPageImage");
-                    $w("#ratingsText").text = memory.getItem(providerId + "_ratingsText");
+                if (globalData.tempGet(providerId) == providerId) {
+                    $w("#nameText").text = globalData.tempGet(providerId + "_name");
+                    $w("#profilePic").src = globalData.tempGet(providerId + "_profilePic");
+                    $w("#frontPageImage").src = globalData.tempGet(providerId + "_frontPageImage");
+                    $w("#ratingsText").text = globalData.tempGet(providerId + "_ratingsText");
                 } else {
                     wixData.get("ProviderList", providerId)
                         .then(provider => {
-                            memory.setItem(providerId + "_fetched", providerId);
-                            const profilePic = provider.profilePic;
-                            memory.setItem(providerId + "_profilePic", profilePic);
+                            globalData.tempSet(providerId, providerId);
                             const name = provider.title;
-                            memory.setItem(providerId + "_name", name);
+                            globalData.tempSet(name, providerId + "_name");
+                            const profilePic = provider.profilePic;
+                            globalData.tempSet(profilePic, providerId + "_profilePic");
                             const rating = provider.rating;
                             const ratings = provider.ratings;
                             const ratingsText = "★ " + rating + " (" + ratings + ") ";
-                            memory.setItem(providerId + "_ratingsText", ratingsText);
-                            //
+                            $w("#ratingsText").text = ratingsText;
+                            globalData.tempSet(ratingsText, providerId + "_ratingsText");
                             $w("#nameText").text = name;
                             $w("#profilePic").src = profilePic;
-                            wixData.get("FoodList", provider.frontPageFood).then(food => {
-                                $w("#frontPageImage").src = food.image;
-                                memory.setItem(providerId + "_frontPageImage", food.image);
-                            });
-                            $w("#ratingsText").text = ratingsText;
+                            wixData.get("FoodList", provider.frontPageFood)
+                                .then(food => {
+                                    $w("#frontPageImage").src = food.image;
+                                    globalData.tempSet(food.image, providerId + "_frontPageImage");
+                                })
+                                .catch(error => {
+                                    console.error("Error getting referenced item:", error);
+                                    $w("#providerBox").collapse(); // Collapse box if error occurs
+                                });
                         })
                         .catch(error => {
                             console.error("Error getting referenced item:", error);
@@ -70,6 +74,8 @@ function refreshListed() {
                     wixLocation.to('/menu?Id=' + providerId);
                 });
             });
+
+
         })
         .catch(error => {
             // Handle any errors that occur during the query
@@ -143,7 +149,6 @@ function initializeElements() {
         });
     deliveryDate = allDates[0];
     dateDisplay(deliveryDate);
-    console.log("calling refreshListed!");
     refreshListed();
 }
 
@@ -191,7 +196,6 @@ function preloadProviders() {
         .then(results => {
             results.items.forEach(provider => {
                 const providerId = provider._id;
-                console.log("providerId: " + providerId)
                 memory.setItem(providerId + "_fetched", providerId);
                 const profilePic = provider.profilePic;
                 memory.setItem(providerId + "_profilePic", profilePic);
