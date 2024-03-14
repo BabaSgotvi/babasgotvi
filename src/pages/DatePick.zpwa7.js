@@ -4,11 +4,14 @@ import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
 
+
 let firstWeek;
 let secondWeek;
 let dateIndex = 0;
 let allDatesString = session.getItem("allDates");
+console.log("allDates: " + allDatesString)
 let totalProvidersPerDateString = session.getItem("totalProviders");
+console.log("totalProviders: " + totalProvidersPerDateString);
 let allDates = allDatesString.split(',');
 let totalProviders = totalProvidersPerDateString.split(',').map(str => parseInt(str));
 
@@ -16,36 +19,36 @@ let totalProviders = totalProvidersPerDateString.split(',').map(str => parseInt(
 $w("#week1repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
     $w("#dayText").text = getDayFromDate(allDates[dateIndex]);
-    if(isTommorow(allDates[dateIndex]))
+    if (isTommorow(allDates[dateIndex]))
         $w("#dayText").text = "Утре";
     $w("#dateText").text = formatDateString(allDates[dateIndex]);
-			let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
-			$w("#totalProvidersText").text = "" + totalProviders[dateIndex] + " " + singorplur;
-            if (totalProviders[dateIndex++] === 0) {
-                $w("#button1").disable();
-            } else {
-                $w("#button1").onClick(() => {
-                    session.setItem("selectedDay", allDates[localIndex]);
-                    wixWindowFrontend.lightbox.close(allDates[localIndex]);
-                });
-            }
+    let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
+    $w("#totalProvidersText").text = "" + totalProviders[dateIndex] + " " + singorplur;
+    if (totalProviders[dateIndex++] === 0) {
+        $w("#button1").disable();
+    } else {
+        $w("#button1").onClick(() => {
+            session.setItem("selectedDay", allDates[localIndex]);
+            wixWindowFrontend.lightbox.close(allDates[localIndex]);
+        });
+    }
 });
 $w("#week2repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
     $w("#dayText2").text = getDayFromDate(allDates[dateIndex]);
-    if(isTommorow(allDates[dateIndex]))
+    if (isTommorow(allDates[dateIndex]))
         $w("#dayText2").text = "Утре";
     $w("#dateText2").text = formatDateString(allDates[dateIndex]);
-			let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
-			$w("#totalProvidersText2").text = "" + totalProviders[dateIndex] + " " + singorplur;
-            if (totalProviders[dateIndex++] === 0) {
-                $w("#button2").disable();
-            } else {
-                $w("#button2").onClick(() => {
-                    session.setItem("selectedDay", allDates[localIndex]);
-                    wixWindowFrontend.lightbox.close(allDates[localIndex]);
-                });
-            }
+    let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
+    $w("#totalProvidersText2").text = "" + totalProviders[dateIndex] + " " + singorplur;
+    if (totalProviders[dateIndex++] === 0) {
+        $w("#button2").disable();
+    } else {
+        $w("#button2").onClick(() => {
+            session.setItem("selectedDay", allDates[localIndex]);
+            wixWindowFrontend.lightbox.close(allDates[localIndex]);
+        });
+    }
 });
 
 function getDayFromDate(dateString) {

@@ -1,32 +1,39 @@
-export let tempFiles = [];
-export function tempSet(value, id) {
-    let check = tempGet(id);
+import { get } from "wix-data";
+
+let items = [];
+
+export function setItem(value, key) {
+    let check = getFullItem(key);
     if (check == null) {
-        tempFiles.push({ value, id });
+        items.push({ value: value, key: key });
+    } else if (check != null && check != { value, key }) {
+        items[getIndex(key)] = { value: value, key: key };
     }
-    else if (check != null && check != { value, id }) {
-        tempFiles[tempGetIndex(id)] = { value, id };
-    }
-    console.log("set: " + { value, id });
 }
-export function tempGet(id) {
-    // Loop through the array to find the object with the specified key
-    for (let i = 0; i < tempFiles.length; i++) {
-        if (tempFiles[i].id === id) {
-            // Return the object if the key matches
-            return tempFiles[i];
-            console.log("got: " + tempFiles[i]);
+
+export function getItem(key) {
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].key === key) {
+            return items[i].value;
         }
     }
-    // Return null if the key is not found in any object
     return null;
 }
-export function tempGetIndex(id) {
-    for (let i = 0; i < tempFiles.length; i++) {
-        if (tempFiles[i].id === id) {
+
+function getFullItem(key) {
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].key === key) {
+            return items[i];
+        }
+    }
+    return null;
+}
+
+function getIndex(key) {
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].key === key) {
             return i;
         }
     }
-    // Return null if the key is not found in any object
     return null;
 }

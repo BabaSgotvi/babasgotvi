@@ -7,7 +7,6 @@ import wixData from 'wix-data';
 import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
-import * as globalData from "public/globalData";
 
 
 let allDates;
@@ -16,6 +15,9 @@ let deliveryDate;
 $w.onReady(function () {
     initializeElements();
 });
+$w("#providerList").onReady(() => {
+    refreshListed();
+})
 
 function refreshListed() {
     let [day, month] = deliveryDate.split("/");
@@ -23,65 +25,14 @@ function refreshListed() {
     let dayOfWeek = date.getDay();
     let weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     let collectionName = weekdays[dayOfWeek] + "List";
-
-    // Query the collection to get items
-    wixData.query(collectionName)
-        .find()
-        .then(results => {
-            // Populate the repeater with items from the collection
-            $w("#repeater1").data = results.items;
-
-            // Populate referenced items in the repeater data
-            $w("#repeater1").forEachItem(($w, itemData, index) => {
-                $w("#providerBox").expand();
-                const providerId = itemData.provider;
-                if (globalData.tempGet(providerId) == providerId) {
-                    $w("#nameText").text = globalData.tempGet(providerId + "_name");
-                    $w("#profilePic").src = globalData.tempGet(providerId + "_profilePic");
-                    $w("#frontPageImage").src = globalData.tempGet(providerId + "_frontPageImage");
-                    $w("#ratingsText").text = globalData.tempGet(providerId + "_ratingsText");
-                } else {
-                    wixData.get("ProviderList", providerId)
-                        .then(provider => {
-                            globalData.tempSet(providerId, providerId);
-                            const name = provider.title;
-                            globalData.tempSet(name, providerId + "_name");
-                            const profilePic = provider.profilePic;
-                            globalData.tempSet(profilePic, providerId + "_profilePic");
-                            const rating = provider.rating;
-                            const ratings = provider.ratings;
-                            const ratingsText = "★ " + rating + " (" + ratings + ") ";
-                            $w("#ratingsText").text = ratingsText;
-                            globalData.tempSet(ratingsText, providerId + "_ratingsText");
-                            $w("#nameText").text = name;
-                            $w("#profilePic").src = profilePic;
-                            wixData.get("FoodList", provider.frontPageFood)
-                                .then(food => {
-                                    $w("#frontPageImage").src = food.image;
-                                    globalData.tempSet(food.image, providerId + "_frontPageImage");
-                                })
-                                .catch(error => {
-                                    console.error("Error getting referenced item:", error);
-                                    $w("#providerBox").collapse(); // Collapse box if error occurs
-                                });
-                        })
-                        .catch(error => {
-                            console.error("Error getting referenced item:", error);
-                            $w("#providerBox").collapse(); // Collapse box if error occurs
-                        });
-                }
-                $w('#providerBox').onClick(() => {
-                    wixLocation.to('/menu?Id=' + providerId);
-                });
-            });
-
-
-        })
-        .catch(error => {
-            // Handle any errors that occur during the query
-            console.error("Error querying collection:", error);
+    $w("#providerList").setFilter(wixData.filter().eq(weekdays[dayOfWeek], true));
+    $w("#providerList").refresh();
+    $w("#providerRepeater").forEachItem(($w, itemData) => {
+        $w('#providerBox').onClick(() => {
+            let providerId = itemData._id;
+            wixLocation.to('/menu?Id=' + providerId);
         });
-
+    })
 }
 
 function dateDisplay(date) {
@@ -129,27 +80,22 @@ function getNextTwoWeeks() {
 }
 
 function initializeElements() {
-    // if (memory.getItem("preloadedProviders") != "preloadedProviders")
-    // {
-    //     memory.setItem("preloadedProviders", "preloadedProviders");
-    //     preloadProviders();
-    // }
     allDates = getNextTwoWeeks();
-    memory.setItem("allDates", allDates);
+    session.setItem("allDates", allDates);
+
     let promises = allDates.map(date => retrieveTotalProviders(date));
 
     Promise.all(promises)
         .then(results => {
             // Convert the results array to a comma-separated string
-            let totalProvidersString = results.join(', ');
-            memory.setItem("totalProviders", totalProvidersString);
+            let totalProvidersString = results.join(',');
+            session.setItem("totalProviders", totalProvidersString);
         })
         .catch(error => {
             // Handle errors here
         });
-    deliveryDate = allDates[0];
+    deliveryDate = allDates[0]; 2
     dateDisplay(deliveryDate);
-    refreshListed();
 }
 
 function retrieveTotalProviders(dateString) {
@@ -158,14 +104,9 @@ function retrieveTotalProviders(dateString) {
         let date = new Date(new Date().getFullYear(), month - 1, day);
         let dayOfWeek = date.getDay();
         let weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        let collectionName = weekdays[dayOfWeek] + "List";
-        wixData.query(collectionName).count()
-            .then(result => {
-                resolve(result);
-            })
-            .catch(err => {
-                reject(err);
-            });
+        wixData.query("#providerList").eq(weekdays[dayOfWeek], true).find().then((results) => {
+            resolve(results.items.length);
+        })
     });
 }
 
@@ -188,29 +129,4 @@ function isTommorow(date) {
     var tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return dateObj.getFullYear() === tomorrow.getFullYear() && dateObj.getMonth() === tomorrow.getMonth() && dateObj.getDate() === tomorrow.getDate();
-}
-
-function preloadProviders() {
-    wixData.query("ProviderList")
-        .find()
-        .then(results => {
-            results.items.forEach(provider => {
-                const providerId = provider._id;
-                memory.setItem(providerId + "_fetched", providerId);
-                const profilePic = provider.profilePic;
-                memory.setItem(providerId + "_profilePic", profilePic);
-                const name = provider.title;
-                memory.setItem(providerId + "_name", name);
-                const rating = provider.rating;
-                const ratings = provider.ratings;
-                const ratingsText = "★ " + rating + " (" + ratings + ") ";
-                memory.setItem(providerId + "_ratingsText", ratingsText);
-                wixData.get("FoodList", provider.frontPageFood).then(food => {
-                    memory.setItem(providerId + "_frontPageImage", food.image);
-                });
-            });
-        })
-        .catch(error => {
-            console.error("Error:", error);
-        });
 }
