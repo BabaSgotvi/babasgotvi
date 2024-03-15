@@ -47,3 +47,23 @@ export function isTommorow(date) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return dateObj.getFullYear() === tomorrow.getFullYear() && dateObj.getMonth() === tomorrow.getMonth() && dateObj.getDate() === tomorrow.getDate();
 }
+export function splitDatesIntoWeeks(dates) {
+    // Get the day of the week for the first date
+    const firstDate = new Date(dates[0]);
+    const firstDayOfWeek = firstDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+    // Split the array into weeks based on the first day of the week
+    if (firstDayOfWeek === 1) {
+        // Case 1: First date is Monday, so we have exactly 2 arrays
+        const firstWeek = dates.slice(0, 7);
+        const secondWeek = dates.slice(7);
+        return [firstWeek, secondWeek];
+    } else {
+        // Case 2: First date is not Monday, so we have 3 arrays
+        const firstIncompleteWeek = dates.slice(0, firstDayOfWeek);
+        const remainingDays = dates.slice(firstDayOfWeek);
+        const secondWeek = remainingDays.slice(0, 7);
+        const thirdWeek = remainingDays.slice(7);
+        return [firstIncompleteWeek, secondWeek, thirdWeek];
+    }
+}

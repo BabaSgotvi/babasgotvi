@@ -5,15 +5,13 @@ import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
 import * as timeManager from 'public/timeManager';
 
-
-let firstWeek;
-let secondWeek;
 let dateIndex = 0;
 let allDatesString = session.getItem("allDates");
 let availableProvidersString = session.getItem("availableProviders");
 let allDates = allDatesString.split(',');
 let availableProviders = availableProvidersString.split(',').map(str => parseInt(str));
 
+let weeks = timeManager.splitDatesIntoWeeks(allDates);
 
 $w("#week1repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
