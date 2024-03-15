@@ -10,11 +10,15 @@ export function dateDisplay(dateString) {
         formattedDate = "Утре";
     return "" + formattedDate;
 }
-export function getDayOfWeekEN(dateString) {
+export function getDayOfWeek(dateString, language) {
     let [day, month] = dateString.split("/");
     let date = new Date(new Date().getFullYear(), month - 1, day);
     let dayOfWeek = date.getDay();
-    let weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    let weekdays;
+    if (language == "EN")
+        weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    else if (language == "BG")
+        weekdays = ["Нед", "Пон", "Вто", "Сря", "Чет", "Пет", "Съб"];
     return weekdays[dayOfWeek];
 
 }

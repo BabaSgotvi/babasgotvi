@@ -20,7 +20,7 @@ $w("#providerList").onReady(() => {
 })
 
 function refreshListed() {
-    $w("#providerList").setFilter(wixData.filter().eq(timeManager.getDayOfWeekEN(deliveryDate), true));
+    $w("#providerList").setFilter(wixData.filter().eq(timeManager.getDayOfWeek(deliveryDate, "EN"), true));
     $w("#providerList").refresh();
     $w("#providerRepeater").onItemReady(($w, itemData) => {
         $w("#ratingsText").text = "★ " + itemData.rating + " (" + itemData.ratings + ")";
@@ -49,7 +49,7 @@ function initializeElements() {
 
 function countAvailableProviders(dateString) {
     return wixData.query("ProviderList")
-        .eq(timeManager.getDayOfWeekEN(dateString), true)
+        .eq(timeManager.getDayOfWeek(dateString, "EN"), true)
         .count();
 }
 

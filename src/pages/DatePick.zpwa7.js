@@ -3,6 +3,7 @@ import wixData from 'wix-data';
 import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
+import * as timeManager from 'public/timeManager';
 
 
 let firstWeek;
@@ -16,8 +17,8 @@ let availableProviders = availableProvidersString.split(',').map(str => parseInt
 
 $w("#week1repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
-    $w("#dayText").text = getDayFromDate(allDates[dateIndex]);
-    if (isTommorow(allDates[dateIndex]))
+    $w("#dayText").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG");
+    if (timeManager.isTommorow(allDates[dateIndex]))
         $w("#dayText").text = "Утре";
     $w("#dateText").text = formatDateString(allDates[dateIndex]);
     let singorplur = (availableProviders[dateIndex] === 1) ? "готвач" : "готвача";
@@ -33,8 +34,8 @@ $w("#week1repeater").forEachItem(($w) => {
 });
 $w("#week2repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
-    $w("#dayText2").text = getDayFromDate(allDates[dateIndex]);
-    if (isTommorow(allDates[dateIndex]))
+    $w("#dayText2").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG");
+    if (timeManager.isTommorow(allDates[dateIndex]))
         $w("#dayText2").text = "Утре";
     $w("#dateText2").text = formatDateString(allDates[dateIndex]);
     let singorplur = (availableProviders[dateIndex] === 1) ? "готвач" : "готвача";
@@ -49,22 +50,7 @@ $w("#week2repeater").forEachItem(($w) => {
     }
 });
 
-function getDayFromDate(dateString) {
-    // Split the date string into day and month components
-    let [day, month] = dateString.split("/");
 
-    // Create a new Date object with the given day and month (year is assumed to be current year)
-    let date = new Date(new Date().getFullYear(), month - 1, day); // month - 1 because months are zero-based in JavaScript
-
-    // Get the day of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
-    let dayOfWeek = date.getDay();
-
-    // Define an array of weekday names
-    let weekdays = ["Нед", "Пон", "Вто", "Сря", "Чет", "Пет", "Съб"];
-
-    // Return the corresponding weekday name
-    return weekdays[dayOfWeek];
-}
 
 function formatDateString(dateString) {
     // Split the date string into day and month components
@@ -78,13 +64,4 @@ function formatDateString(dateString) {
 
     // Return the formatted date string
     return day + " " + monthName;
-}
-function isTommorow(date) {
-    var parts = date.split('/');
-    var day = parseInt(parts[0], 10);
-    var month = parseInt(parts[1], 10) - 1;
-    var dateObj = new Date(new Date().getFullYear(), month, day);
-    var tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return dateObj.getFullYear() === tomorrow.getFullYear() && dateObj.getMonth() === tomorrow.getMonth() && dateObj.getDate() === tomorrow.getDate();
 }
