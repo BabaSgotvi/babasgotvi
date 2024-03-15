@@ -22,7 +22,8 @@ $w("#providerList").onReady(() => {
 function refreshListed() {
     $w("#providerList").setFilter(wixData.filter().eq(timeManager.getDayOfWeekEN(deliveryDate), true));
     $w("#providerList").refresh();
-    $w("#providerRepeater").forEachItem(($w, itemData) => {
+    $w("#providerRepeater").onItemReady(($w, itemData) => {
+        $w("#ratingsText").text = "★ " + itemData.rating + " (" + itemData.ratings + ")";
         $w('#providerBox').onClick(() => {
             let providerId = itemData._id;
             wixLocation.to('/menu?Id=' + providerId);
