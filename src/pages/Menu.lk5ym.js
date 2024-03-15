@@ -2,7 +2,7 @@ import wixLocationFrontend from "wix-location-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import { local, session, memory } from "wix-storage-frontend";
-import * as globalData from "public/globalData";
+
 // vars
 let providerId;
 let cartList = [];

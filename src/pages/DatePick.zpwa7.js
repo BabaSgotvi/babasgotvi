@@ -9,11 +9,9 @@ let firstWeek;
 let secondWeek;
 let dateIndex = 0;
 let allDatesString = session.getItem("allDates");
-console.log("allDates: " + allDatesString)
-let totalProvidersPerDateString = session.getItem("totalProviders");
-console.log("totalProviders: " + totalProvidersPerDateString);
+let availableProvidersString = session.getItem("availableProviders");
 let allDates = allDatesString.split(',');
-let totalProviders = totalProvidersPerDateString.split(',').map(str => parseInt(str));
+let availableProviders = availableProvidersString.split(',').map(str => parseInt(str));
 
 
 $w("#week1repeater").forEachItem(($w) => {
@@ -22,9 +20,9 @@ $w("#week1repeater").forEachItem(($w) => {
     if (isTommorow(allDates[dateIndex]))
         $w("#dayText").text = "Утре";
     $w("#dateText").text = formatDateString(allDates[dateIndex]);
-    let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
-    $w("#totalProvidersText").text = "" + totalProviders[dateIndex] + " " + singorplur;
-    if (totalProviders[dateIndex++] === 0) {
+    let singorplur = (availableProviders[dateIndex] === 1) ? "готвач" : "готвача";
+    $w("#availableProvidersText").text = "" + availableProviders[dateIndex] + " " + singorplur;
+    if (availableProviders[dateIndex++] === 0) {
         $w("#button1").disable();
     } else {
         $w("#button1").onClick(() => {
@@ -39,9 +37,9 @@ $w("#week2repeater").forEachItem(($w) => {
     if (isTommorow(allDates[dateIndex]))
         $w("#dayText2").text = "Утре";
     $w("#dateText2").text = formatDateString(allDates[dateIndex]);
-    let singorplur = (totalProviders[dateIndex] === 1) ? "готвач" : "готвача";
-    $w("#totalProvidersText2").text = "" + totalProviders[dateIndex] + " " + singorplur;
-    if (totalProviders[dateIndex++] === 0) {
+    let singorplur = (availableProviders[dateIndex] === 1) ? "готвач" : "готвача";
+    $w("#availableProvidersText2").text = "" + availableProviders[dateIndex] + " " + singorplur;
+    if (availableProviders[dateIndex++] === 0) {
         $w("#button2").disable();
     } else {
         $w("#button2").onClick(() => {
