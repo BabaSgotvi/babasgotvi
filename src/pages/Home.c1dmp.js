@@ -41,7 +41,6 @@ function initializeElements() {
         .then(counts => {
             let availableProviders = counts.map(count => count.toString());
             session.setItem("availableProviders", availableProviders);
-            console.log(session.getItem("availableProviders"));
         })
     deliveryDate = allDates[0];
     $w("#deliveryDate").text = timeManager.dateDisplay(deliveryDate);

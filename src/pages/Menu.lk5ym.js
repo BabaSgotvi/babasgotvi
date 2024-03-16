@@ -2,6 +2,7 @@ import wixLocationFrontend from "wix-location-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import { local, session, memory } from "wix-storage-frontend";
+import wixWindow from 'wix-window';
 
 // vars
 let providerId;
@@ -38,20 +39,10 @@ $w.onReady(async function () {
       });
       $w("#minusButton").collapse();
       $w("#foodAmountText").collapse();
-      $w("#foodProfileHitTrigger").onMouseIn(() => {
-        session.removeItem("previewImage");
-        session.setItem("previewImage", itemData.image);
-        session.setItem("previewName", itemData.title);
-        session.setItem("previewDescription", itemData.description);
-        session.setItem("previewIngredients", itemData.ingredients);
-        session.setItem("previewPrice", itemData.price);
-        session.setItem("previewPortionSizes", itemData.portionSizes);
-        session.setItem("previewMaxAmount", itemData.maxPerDay);
-        session.setItem("previewAmount", foodAmount[index]);
-      });
       $w("#plusButton").onClick(() => {
         //
-        if (!cartList.includes(itemData._id)) cartList[index] = itemData._id;
+        if (!cartList.includes(itemData._id))
+          cartList[index] = itemData._id;
         foodAmount[index] = (foodAmount[index] || 0) + 1;
 
         if (foodAmount[index] >= maxAmountPerDay) {
@@ -82,6 +73,42 @@ $w.onReady(async function () {
       session.setItem("previewAmount", foodAmount[index]);
       listCart(itemData._id, index);
       $w("#foodAmountText").text = "" + foodAmount[index];
+      // async
+      $w("#foodProfileHitTrigger").onClick(async () => {
+        session.removeItem("previewImage");
+        session.setItem("previewImage", itemData.image);
+        session.setItem("previewName", itemData.title);
+        session.setItem("previewDescription", itemData.description);
+        session.setItem("previewIngredients", itemData.ingredients);
+        session.setItem("previewPrice", itemData.price);
+        session.setItem("previewPortionSizes", itemData.portionSizes);
+        session.setItem("previewMaxAmount", itemData.maxPerDay);
+        session.setItem("previewAmount", foodAmount[index]);
+        let amm = await wixWindow.openLightbox("foodProfile");
+        if (amm <= 0 || amm == "undefined" || amm == "null") {
+          amm = 0;
+          $w("#minusButton").collapse();
+          $w("#foodAmountText").collapse();
+        }
+        else {
+          $w("#minusButton").expand();
+          $w("#foodAmountText").expand();
+        }
+        if (amm >= maxAmountPerDay) {
+          amm = maxAmountPerDay;
+          $w("#plusButton").collapse();
+        }
+        else {
+          $w("#plusButton").expand();
+        }
+        if (amm != 0) {
+          if (!cartList.includes(itemData._id))
+            cartList[index] = itemData._id;
+          foodAmount[index] = amm;
+          $w("#foodAmountText").text = "" + foodAmount[index];
+          listCart(itemData._id, index);
+        }
+      });
     });
   }
 
@@ -134,7 +161,3 @@ $w.onReady(async function () {
     });
   }
 });
-export function foodProfileLightBox_closed() {
-  // Run your function here
-  console.log("Lightbox closed!");
-}

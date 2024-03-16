@@ -5,6 +5,7 @@ let previewFood;
 let portionSizes;
 let portionSize;
 let amount;
+let initAmount;
 let maxAmount;
 const infoStates = {
     ingredients: 0,
@@ -14,14 +15,14 @@ let infoState = infoStates.ingredients;
 $w.onReady(function () {
     $w("#image").src = session.getItem("previewImage");
     $w("#name").text = session.getItem("previewName");
-    amount = parseInt(session.getItem("previewAmount"));
+    amount = initAmount = session.getItem("previewAmount");
     maxAmount = session.getItem("previewMaxAmount");
     amountCheck();
     let isDashBoardPreview = session.getItem("isDashBoardPreview");
     if (isDashBoardPreview == "true") {
-        $w("#orderButton").disable();
+        $w("#addToCartButton").disable();
     } else {
-        $w("#orderButton").enable();
+        $w("#addToCartButton").enable();
     }
     displayFoodInfo();
     const price = session.getItem("previewPrice");
@@ -69,22 +70,20 @@ $w("#minusButton").onClick(() => {
 });
 
 function amountCheck() {
-    // NO MATTER WHAT, ENTRES B, C, even if Amount = 4, for example
+    if (amount <= 1 || amount == "undefined" || amount == "null") {
+        console.log("Here!");
+        amount = 1;
+        $w("#minusButton").disable();
+    }
     if (amount >= maxAmount) {
         amount = maxAmount;
         $w("#plusButton").disable();
     }
-    if (amount <= 1 || amount == undefined || amount == null) {
-        amount = 1;
-        $w("#minusButton").disable();
-    }
     $w("#foodAmountText").text = "" + amount;
 }
-$w("#orderButton").onClick(() => {
-    session.setItem("portionSize", portionSize);
-    session.setItem("amount", amount);
-    wixWindowFrontend.lightbox.close();
+$w("#addToCartButton").onClick(() => {
+    wixWindowFrontend.lightbox.close(amount);
 });
 $w("#closeButton").onClick(() => {
-    wixWindowFrontend.lightbox.close();
+    wixWindowFrontend.lightbox.close(initAmount);
 });
