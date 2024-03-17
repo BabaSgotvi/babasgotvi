@@ -158,6 +158,13 @@ $w.onReady(async function () {
         .then((referencedItem) => {
           $w("#foodBannerPic").src = referencedItem["image"];
         });
-    });
+    })
+      .catch(err => {
+        console.error(err);
+        wixLocation.to("/");
+      })
   }
+});
+$w("#orderButton").onClick(() => {
+  wixLocation.to("/checkout");
 });

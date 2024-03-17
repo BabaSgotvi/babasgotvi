@@ -9,36 +9,11 @@ function capitalizeFirstLetter(input) {
 }
 let stage = 0;
 
-function tryNextStage() {
-  switch (stage) {
-    case 0:
-      $w("#stage0").expand();
-      $w("#stage1").collapse();
-      if (
-        $w("#firstNameInput").valid &&
-        $w("#lastNameInput").valid &&
-        $w("#phoneNumberInput").valid &&
-        $w("#emailInput").valid &&
-        $w("#addressInput").valid
-      ) {
-        $w("#stage1").expand();
-        stage++;
-        $w("#stage1").scrollTo();
-        tryNextStage();
-      } else {
-        $w("#stage1").collapse();
-      }
-      break;
-    case 1:
-      if (
-        $w("#profilePicUploadButton").value.length > 0 &&
-        $w("#passwordInput").value.length >= 6 &&
-        $w("#passwordInput").value.length <= 25
-      )
-        $w("#createAccountButton").expand();
-      else $w("#createAccountButton").collapse();
-      break;
-  }
+function tryEnableButton() {
+  if ($w("#firstNameInput").valid && $w("#lastNameInput").valid && $w("#phoneNumberInput").valid && $w("#emailInput").valid && $w("#addressInput").valid && $w("#passwordInput").valid)
+    $w("#createAccountButton").enable();
+  else
+    $w("#createAccountButton").disable();
 }
 // Function to handle input validation for basic inputs
 function setInputValidation() {
@@ -47,7 +22,6 @@ function setInputValidation() {
   let lastLastName = "";
   let lastPhoneNumber = "";
   let lastEmail = "";
-  let lastUsername = "";
 
   // FIRST NAME input validation
   $w("#firstNameInput").onInput(() => {
@@ -66,7 +40,7 @@ function setInputValidation() {
     lastFirstName = $w("#firstNameInput").value = capitalizeFirstLetter(
       $w("#firstNameInput").value
     );
-    tryNextStage();
+    tryEnableButton();
   });
 
   // LAST NAME input validation
@@ -86,7 +60,7 @@ function setInputValidation() {
     lastLastName = $w("#lastNameInput").value = capitalizeFirstLetter(
       $w("#lastNameInput").value
     );
-    tryNextStage();
+    tryEnableButton();
   });
 
   // PHONE NUMBER input validation
@@ -100,7 +74,7 @@ function setInputValidation() {
     } else {
       $w("#phoneNumberInput").value = lastPhoneNumber;
     }
-    tryNextStage();
+    tryEnableButton();
   });
 
   // EMAIL input validation
@@ -117,7 +91,7 @@ function setInputValidation() {
       $w("#emailInput").value = lastEmail;
     }
     $w("#emailInput").value = $w("#emailInput").value.toLowerCase();
-    tryNextStage();
+    tryEnableButton();
   });
   // ADDRESS input validation
   $w("#addressInput").onCustomValidation((value, reject) => {
@@ -140,7 +114,7 @@ function setInputValidation() {
   $w("#addressInput").onChange(() => {
     session.removeItem("addressInput");
     session.setItem("addressInput", JSON.stringify($w("#addressInput").value));
-    tryNextStage();
+    tryEnableButton();
   });
 
   // PASSWORD input validation
@@ -182,58 +156,48 @@ function setInputValidation() {
       $w("#passwordInput").value = "●".repeat(realPassword.length);
       $w("#previewPassword").text = realPassword;
     }
-    tryNextStage();
+    tryEnableButton();
   });
   // Function to handle file upload
-  $w("#profilePicUploadButton").onChange(() => {
-    if ($w("#profilePicUploadButton").value.length > 0) {
-      $w("#profilePicUploadButton")
-        .uploadFiles()
-        .then((uploadedFiles) => {
-          $w("#profilePic").src = uploadedFiles[0].fileUrl;
-        })
-        .catch((uploadError) => {});
-    }
-    // CREATE ACCOUNT button
-    $w("#createAccountButton").onClick(() => {
-      createAccount();
-    });
-    tryNextStage();
+  // $w("#profilePicUploadButton").onChange(() => {
+  //   if ($w("#profilePicUploadButton").value.length > 0) {
+  //     $w("#profilePicUploadButton")
+  //       .uploadFiles()
+  //       .then((uploadedFiles) => {
+  //         $w("#profilePic").src = uploadedFiles[0].fileUrl;
+  //       })
+  //       .catch((uploadError) => { });
+  //   }
+  // CREATE ACCOUNT button
+  $w("#createAccountButton").onClick(() => {
+    createAccount();
   });
+  // });
 }
 
 $w.onReady(function () {
-  $w("#errorText").collapse();
-  tryNextStage();
+  tryEnableButton();
   setInputValidation();
 });
 
 function createAccount() {
-  const accountKey = generateRandomString(15);
+  const accountKey = generateRandomString(25);
   let newAccount = {
     title: $w("#firstNameInput").value,
     lastName: $w("#lastNameInput").value,
-    profilePic: $w("#profilePic").src,
     address: $w("#addressInput").value,
     password: realPassword,
     phoneNumber: $w("#phoneNumberInput").value,
     email: $w("#emailInput").value,
-    bio: $w("#bioInput").value,
     accountKey: accountKey,
   };
   wixData
     .insert("ProviderList", newAccount)
     .then((results) => {
       local.setItem("accountKey", accountKey);
+      local.setItem("tour", "doTour");
       wixLocation.to("/providerdashboard");
     })
-    .catch((error) => {
-      // Error occurred while adding the item
-      console.error("Error adding item:", error);
-      $w("#errorText").text =
-        "Имаше проблем при създаването на профила Ви: " + error;
-        $w("#errorText").expand();
-    });
 }
 
 function generateRandomString(length) {
