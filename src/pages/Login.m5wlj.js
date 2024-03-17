@@ -14,7 +14,7 @@ $w("#phoneNumberInput").onChange(() => {
   } else {
     $w("#phoneNumberInput").value = lastPhoneNumber;
   }
-  tryNextStage();
+  tryEnableButton();
 });
 
 // EMAIL input validation
@@ -31,7 +31,7 @@ $w("#emailInput").onChange(() => {
     $w("#emailInput").value = lastEmail;
   }
   $w("#emailInput").value = $w("#emailInput").value.toLowerCase();
-  tryNextStage();
+  tryEnableButton();
 });
 
 let lastPassword = "";
@@ -72,21 +72,21 @@ $w("#passwordInput").onChange(() => {
     $w("#passwordInput").value = "●".repeat(realPassword.length);
     $w("#previewPassword").text = realPassword;
   }
-  tryNextStage();
+  tryEnableButton();
 });
 $w("#changeToEmail").onClick(() => {
   $w("#emailInput").expand();
   $w("#changeToPhoneNumber").expand();
   $w("#phoneNumberInput").collapse();
   $w("#changeToEmail").collapse();
-  tryNextStage();
+  tryEnableButton();
 });
 $w("#changeToPhoneNumber").onClick(() => {
   $w("#phoneNumberInput").expand();
   $w("#changeToEmail").expand();
   $w("#emailInput").collapse();
   $w("#changeToPhoneNumber").collapse();
-  tryNextStage();
+  tryEnableButton();
 });
 $w("#loginButton").onClick(() => {
   let inputValue = $w("#phoneNumberInput").collapsed
@@ -132,22 +132,22 @@ $w.onReady(() => {
   $w("#emailInput").collapse();
   $w("#errorText").collapse();
   //
-  tryNextStage();
+  tryEnableButton();
 });
-function tryNextStage() {
-  $w("#loginButton").collapse();
+function tryEnableButton() {
+  $w("#loginButton").disable();
   if (
     $w("#passwordInput").value.length >= 6 &&
     $w("#passwordInput").value.length <= 25
   ) {
     if (!$w("#phoneNumberInput").collapsed) {
       if ($w("#phoneNumberInput").valid) {
-        $w("#loginButton").expand();
+        $w("#loginButton").enable();
       }
     } // if using email
     else {
       if ($w("#emailInput").valid) {
-        $w("#loginButton").expand();
+        $w("#loginButton").enable();
       }
     }
   }
