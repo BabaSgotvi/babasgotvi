@@ -55,6 +55,7 @@ function validateAccount() {
             .then((results) => {
                 if (results.items.length > 0) {
                     account = results.items[0];
+                    updateProfile(); // Call updateProfile() after account data is fetched
                 } else {
                     wixLocation.to("/");
                 }
@@ -63,6 +64,7 @@ function validateAccount() {
                 wixLocation.to("/");
             });
     }
+    console.log("validated!");
 }
 
 function changeSection() {
@@ -113,3 +115,24 @@ $w("#buySectionButton").onClick(() => {
 function Tour() {
 
 }
+
+function updateProfile() {
+    console.log("ACCOUNT: " + account);
+    console.log("updating profile: last name: " + account.title + " " + account.lastName);
+    $w("#profileName").text = account.title + " " + account.lastName;
+    if (account.profilePic != null || account.profilePic != undefined)
+        $w("#profilePic").src = account.profilePic;
+}
+
+$w("#profilePicUploadButton").onChange(() => {
+    if ($w("#profilePicUploadButton").value.length > 0) {
+        $w("#profilePicUploadButton")
+            .uploadFiles()
+            .then((uploadedFiles) => {
+                $w("#profilePic").src = uploadedFiles[0].fileUrl;
+                let changed = account;
+                changed.profilePic = uploadedFiles[0].fileUrl;
+                wixData.save("ProviderList", changed);
+            })
+    }
+});

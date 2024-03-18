@@ -158,16 +158,6 @@ function setInputValidation() {
     }
     tryEnableButton();
   });
-  // Function to handle file upload
-  // $w("#profilePicUploadButton").onChange(() => {
-  //   if ($w("#profilePicUploadButton").value.length > 0) {
-  //     $w("#profilePicUploadButton")
-  //       .uploadFiles()
-  //       .then((uploadedFiles) => {
-  //         $w("#profilePic").src = uploadedFiles[0].fileUrl;
-  //       })
-  //       .catch((uploadError) => { });
-  //   }
   // CREATE ACCOUNT button
   $w("#createAccountButton").onClick(() => {
     createAccount();
