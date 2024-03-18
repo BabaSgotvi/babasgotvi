@@ -1,6 +1,7 @@
 import { local, session, memory } from "wix-storage-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
+import wixWindow from 'wix-window';
 let account;
 const sections = {
     orders: 1,
@@ -32,15 +33,18 @@ $w.onReady(function () {
         // TODO:
         // add confirmation message
         // add second confirmation message
-        await wixData.remove("ProviderList", account._id);
-        const query = wixData.query("FoodList").eq("owner", account._id);
-        const results = await query.find();
-        if (results.items.length > 0) {
-            const foodIds = results.items.map(food => food._id);
-            await wixData.bulkRemove("FoodList", foodIds);
+        let confirmation = await wixWindow.openLightbox("ConfirmDelete");
+        if (confirmation == "proceedDeletion") {
+            await wixData.remove("ProviderList", account._id);
+            const query = wixData.query("FoodList").eq("owner", account._id);
+            const results = await query.find();
+            if (results.items.length > 0) {
+                const foodIds = results.items.map(food => food._id);
+                await wixData.bulkRemove("FoodList", foodIds);
+            }
+            local.removeItem("accountKey");
+            wixLocation.to("/");
         }
-        local.removeItem("accountKey");
-        wixLocation.to("/");
     });
 });
 
