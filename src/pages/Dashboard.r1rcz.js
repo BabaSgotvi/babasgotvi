@@ -10,40 +10,22 @@ const sections = {
     buy: 4
 };
 let currentSection = sections.orders;
+//
 $w.onReady(function () {
     let doTour = local.getItem("tour");
     if (doTour == "doTour")
         Tour();
     validateAccount();
     changeSection();
-    $w("#sendToLiveMenu").onClick(() => {
-        wixLocation.to('/menu?Id=' + account._id);
-    });
+    $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id)); // account is undefined
+    // TODO: FIX ASYNC OF VALIDATEACCOUNT() AND FIX UNDEFINED ISSUE
+    $w("#FoodList").refresh();
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
+        console.log(itemData.owner + " && " + account._id);
         $w("#previewButton").onClick(() => {
             session.removeItem("previewFoodId");
             session.setItem("previewFoodId", itemData._id);
         })
-    });
-    $w("#logoutButton").onClick(() => {
-        local.removeItem("accountKey");
-        wixLocation.to("/");
-    });
-    $w("#deleteAccountButton").onClick(async () => {
-        console.log("delete account button has been clicked!");
-        let confirmation = await wixWindow.openLightbox("ConfirmDelete");
-        console.log("confirmation message: " + confirmation);
-        if (confirmation == "confirmed") {
-            await wixData.remove("ProviderList", account._id);
-            const query = wixData.query("FoodList").eq("owner", account._id);
-            const results = await query.find();
-            if (results.items.length > 0) {
-                const foodIds = results.items.map(food => food._id);
-                await wixData.bulkRemove("FoodList", foodIds);
-            }
-            local.removeItem("accountKey");
-            wixLocation.to("/");
-        }
     });
 });
 
@@ -67,7 +49,6 @@ function validateAccount() {
                 wixLocation.to("/");
             });
     }
-    console.log("validated!");
 }
 
 function changeSection() {
@@ -135,5 +116,26 @@ $w("#profilePicUploadButton").onChange(() => {
                 changed.profilePic = uploadedFiles[0].fileUrl;
                 wixData.save("ProviderList", changed);
             })
+    }
+});
+$w("#sendToLiveMenu").onClick(() => {
+    wixLocation.to('/menu?Id=' + account._id);
+});
+$w("#logoutButton").onClick(() => {
+    local.removeItem("accountKey");
+    wixLocation.to("/");
+});
+$w("#deleteAccountButton").onClick(async () => {
+    let confirmation = await wixWindow.openLightbox("ConfirmDelete");
+    if (confirmation == "confirmed") {
+        await wixData.remove("ProviderList", account._id);
+        const query = wixData.query("FoodList").eq("owner", account._id);
+        const results = await query.find();
+        if (results.items.length > 0) {
+            const foodIds = results.items.map(food => food._id);
+            await wixData.bulkRemove("FoodList", foodIds);
+        }
+        local.removeItem("accountKey");
+        wixLocation.to("/");
     }
 });

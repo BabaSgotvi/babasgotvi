@@ -71,7 +71,6 @@ $w("#minusButton").onClick(() => {
 
 function amountCheck() {
     if (amount <= 1 || amount == "undefined" || amount == "null") {
-        console.log("Here!");
         amount = 1;
         $w("#minusButton").disable();
     }

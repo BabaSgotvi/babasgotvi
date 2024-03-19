@@ -98,8 +98,6 @@ $w("#loginButton").onClick(() => {
     ? "email"
     : "phoneNumber";
 
-  console.log(fieldToQuery + ": " + inputValue);
-  console.log("password: " + $w("#passwordInput").value);
   //
   //
   $w("#errorText").collapse();
