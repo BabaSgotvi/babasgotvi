@@ -30,11 +30,10 @@ $w.onReady(function () {
         wixLocation.to("/");
     });
     $w("#deleteAccountButton").onClick(async () => {
-        // TODO:
-        // add confirmation message
-        // add second confirmation message
+        console.log("delete account button has been clicked!");
         let confirmation = await wixWindow.openLightbox("ConfirmDelete");
-        if (confirmation == "proceedDeletion") {
+        console.log("confirmation message: " + confirmation);
+        if (confirmation == "confirmed") {
             await wixData.remove("ProviderList", account._id);
             const query = wixData.query("FoodList").eq("owner", account._id);
             const results = await query.find();
@@ -59,7 +58,7 @@ function validateAccount() {
             .then((results) => {
                 if (results.items.length > 0) {
                     account = results.items[0];
-                    updateProfile(); // Call updateProfile() after account data is fetched
+                    displayProfile(); // Call displayProfile() after account data is fetched
                 } else {
                     wixLocation.to("/");
                 }
@@ -120,9 +119,7 @@ function Tour() {
 
 }
 
-function updateProfile() {
-    console.log("ACCOUNT: " + account);
-    console.log("updating profile: last name: " + account.title + " " + account.lastName);
+function displayProfile() {
     $w("#profileName").text = account.title + " " + account.lastName;
     if (account.profilePic != null || account.profilePic != undefined)
         $w("#profilePic").src = account.profilePic;
