@@ -11,45 +11,48 @@ const sections = {
 };
 let currentSection = sections.orders;
 //
-$w.onReady(function () {
+$w.onReady(async function () {
+    await validateAccount();
     let doTour = local.getItem("tour");
     if (doTour == "doTour")
         Tour();
-    validateAccount();
     changeSection();
+    displayProfile();
     $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id)); // account is undefined
     // TODO: FIX ASYNC OF VALIDATEACCOUNT() AND FIX UNDEFINED ISSUE
     $w("#FoodList").refresh();
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
-        console.log(itemData.owner + " && " + account._id);
-        $w("#previewButton").onClick(() => {
-            session.removeItem("previewFoodId");
-            session.setItem("previewFoodId", itemData._id);
-        })
+
     });
 });
 
 function validateAccount() {
-    const accountKey = local.getItem("accountKey");
-    if (accountKey == null || accountKey == undefined) {
-        wixLocation.to("/");
-    } else {
-        wixData.query("ProviderList")
-            .eq("accountKey", accountKey)
-            .find()
-            .then((results) => {
-                if (results.items.length > 0) {
-                    account = results.items[0];
-                    displayProfile(); // Call displayProfile() after account data is fetched
-                } else {
+    return new Promise((resolve, reject) => {
+        const accountKey = local.getItem("accountKey");
+        if (accountKey == null) {
+            wixLocation.to("/");
+            reject("Account key is null."); // Reject the promise if there's no accountKey
+        } else {
+            wixData.query("ProviderList")
+                .eq("accountKey", accountKey)
+                .find()
+                .then((results) => {
+                    if (results.items.length > 0) {
+                        account = results.items[0];
+                        resolve(account); // Resolve the promise with the account
+                    } else {
+                        wixLocation.to("/");
+                        reject("No account found."); // Reject the promise if no account is found
+                    }
+                })
+                .catch((error) => {
                     wixLocation.to("/");
-                }
-            })
-            .catch((error) => {
-                wixLocation.to("/");
-            });
-    }
+                    reject(error); // Reject the promise on error
+                });
+        }
+    });
 }
+
 
 function changeSection() {
     switch (currentSection) {
