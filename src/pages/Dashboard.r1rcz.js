@@ -10,6 +10,12 @@ const sections = {
     buy: 4
 };
 let currentSection = sections.orders;
+const menuSections =
+{
+    catalogue: 1,
+    settings: 2
+}
+let currentMenuSection = menuSections.catalogue;
 //
 $w.onReady(async function () {
     await validateAccount();
@@ -17,9 +23,9 @@ $w.onReady(async function () {
     if (doTour == "doTour")
         Tour();
     changeSection();
+    switchMenuSections();
     displayProfile();
-    $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id)); // account is undefined
-    // TODO: FIX ASYNC OF VALIDATEACCOUNT() AND FIX UNDEFINED ISSUE
+    $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id));
     $w("#FoodList").refresh();
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
 
@@ -142,3 +148,21 @@ $w("#deleteAccountButton").onClick(async () => {
         wixLocation.to("/");
     }
 });
+$w("#switchToMenuCatalogue").onClick(() => {
+    currentMenuSection = menuSections.catalogue;
+    switchMenuSections();
+});
+$w("#switchToMenuSettings").onClick(() => {
+    currentMenuSection = menuSections.settings;
+    switchMenuSections();
+})
+function switchMenuSections() {
+    if (currentMenuSection == menuSections.catalogue) {
+        $w("#switchToMenuCatalogue").disable();
+        $w("#switchToMenuSettings").enable();
+    }
+    else {
+        $w("#switchToMenuCatalogue").enable();
+        $w("#switchToMenuSettings").disable();
+    }
+}
