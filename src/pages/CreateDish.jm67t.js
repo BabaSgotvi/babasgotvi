@@ -4,11 +4,12 @@ import { local, session, memory } from "wix-storage-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
-
-$w("#uploadFoodImageButton").onChange(() => {
-    uploadFoodImage();
+let srcHasBeenChanged = false;
+$w.onReady(function () {
     isValidForCreation();
+    console.log("src: " + $w("#foodImage").src);
 });
+$w("#uploadFoodImageButton").onChange(uploadFoodImage);
 $w("#createFoodButton").onClick(createFood);
 
 function uploadFoodImage() {
@@ -17,6 +18,8 @@ function uploadFoodImage() {
             .uploadFiles()
             .then((uploadedFiles) => {
                 $w("#foodImage").src = uploadedFiles[0].fileUrl;
+                srcHasBeenChanged = true;
+                isValidForCreation();
             });
     }
 }
@@ -30,7 +33,7 @@ function createFood() {
 }
 
 function isValidForCreation() {
-    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay") && $w("#foodMaxOrdersPerDay").value !== "0") {
+    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay") && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged) {
         $w("#createFoodButton").enable();
         return true;
     } else {
