@@ -81,7 +81,6 @@ $w.onReady(async function () {
         session.setItem("previewDescription", itemData.description);
         session.setItem("previewIngredients", itemData.ingredients);
         session.setItem("previewPrice", itemData.price);
-        session.setItem("previewPortionSizes", itemData.portionSizes);
         session.setItem("previewMaxAmount", itemData.maxPerDay);
         session.setItem("previewAmount", foodAmount[index]);
         let amm = await wixWindow.openLightbox("foodProfile");

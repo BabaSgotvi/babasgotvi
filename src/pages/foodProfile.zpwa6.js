@@ -26,16 +26,7 @@ $w.onReady(function () {
     }
     displayFoodInfo();
     const price = session.getItem("previewPrice");
-    const portionSizes = session.getItem("previewPortionSizes").split(", ");
-    const portionSizesData = portionSizes.map((portionSize, index) => ({
-        _id: `portion${index}`, // Unique ID for each portion size item
-        portionSize: portionSize // Data property containing the portion size
-    }));
 
-    $w("#repeater1").data = portionSizesData;
-    $w("#repeater1").forEachItem(($w, itemData, index) => {
-        $w("#sizeandprice").text = itemData.portionSize + " гр. | " + price + " лв.";
-    });
 });
 
 function displayFoodInfo() {

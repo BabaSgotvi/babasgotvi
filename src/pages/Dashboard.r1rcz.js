@@ -7,7 +7,6 @@ const sections = {
     orders: 1,
     menu: 2,
     account: 3,
-    buy: 4
 };
 let currentSection = sections.orders;
 const menuSections =
@@ -66,23 +65,14 @@ function changeSection() {
             $w("#ordersSection").expand();
             $w("#menuSection").collapse();
             $w("#accountSection").collapse();
-            $w("#buySection").collapse();
             break;
         case sections.menu:
             $w("#menuSection").expand();
             $w("#ordersSection").collapse();
             $w("#accountSection").collapse();
-            $w("#buySection").collapse();
             break;
         case sections.account:
             $w("#accountSection").expand();
-            $w("#ordersSection").collapse();
-            $w("#menuSection").collapse();
-            $w("#buySection").collapse();
-            break;
-        case sections.buy:
-            $w("#buySection").expand();
-            $w("#accountSection").collapse();
             $w("#ordersSection").collapse();
             $w("#menuSection").collapse();
             break;
@@ -98,10 +88,6 @@ $w("#menuSectionButton").onClick(() => {
 });
 $w("#accountSectionButton").onClick(() => {
     currentSection = sections.account;
-    changeSection();
-});
-$w("#buySectionButton").onClick(() => {
-    currentSection = sections.buy;
     changeSection();
 });
 
