@@ -15,7 +15,7 @@ const menuSections =
     settings: 2
 }
 let currentMenuSection = menuSections.catalogue;
-//
+
 $w.onReady(async function () {
     await validateAccount();
     let doTour = local.getItem("tour");
