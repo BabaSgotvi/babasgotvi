@@ -2,6 +2,7 @@ import { local, session, memory } from "wix-storage-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
+
 let account;
 const sections = {
     orders: 1,
@@ -151,4 +152,13 @@ function switchMenuSections() {
         $w("#switchToMenuCatalogue").enable();
         $w("#switchToMenuSettings").disable();
     }
+    return;
 }
+$w("#monAvButton").onClick(() => {
+    $w("#monAvButton").collapse();
+    $w("#monUnavButton").expand();
+});
+$w("#monUnAvButton").onClick(() => {
+    $w("#monUnavButton").collapse();
+    $w("#monAvButton").expand();
+});
