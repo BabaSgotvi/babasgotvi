@@ -27,6 +27,7 @@ $w.onReady(async function () {
     displayProfile();
     $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id));
     $w("#FoodList").refresh();
+    // @ts-ignore
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
 
     });
@@ -154,11 +155,3 @@ function switchMenuSections() {
     }
     return;
 }
-$w("#monAvButton").onClick(() => {
-    $w("#monAvButton").collapse();
-    $w("#monUnavButton").expand();
-});
-$w("#monUnAvButton").onClick(() => {
-    $w("#monUnavButton").collapse();
-    $w("#monAvButton").expand();
-});

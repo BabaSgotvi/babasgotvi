@@ -1,5 +1,3 @@
-// This script handles the creation of a food item including uploading an image and validating input fields.
-
 import { local, session, memory } from "wix-storage-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
@@ -42,7 +40,7 @@ function createFood() {
 }
 
 function isValidForCreation() {
-    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay") && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged) {
+    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodIngredientsInput") && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay") && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged) {
         if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"] || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
             $w("#createFoodButton").enable();
             return true;
@@ -56,6 +54,7 @@ function isValidForCreation() {
         return false;
     }
 }
+
 
 function isNotEmpty(id) {
     return $w(id).value !== undefined && $w(id).value !== null && $w(id).value !== "";
@@ -75,6 +74,9 @@ $w("#foodPriceInput").onChange(() => {
 $w("#foodMaxOrdersPerDay").onChange(() => {
     isValidForCreation();
 });
+$w("#foodIngredientsInput").onChange(() => {
+    isValidForCreation();
+})
 $w("#monAv").onClick(() => {
     toUnav("mon");
 });
@@ -117,15 +119,90 @@ $w("#sunAv").onClick(() => {
 $w("#sunUnav").onClick(() => {
     toAv("sun");
 });
+
 function toAv(day) {
+
+    // @ts-ignore
     $w("#" + day + "Unav").collapse();
+    // @ts-ignore
     $w("#" + day + "Av").expand();
     availableDays[day] = true;
     isValidForCreation();
 }
+/**
+ * @param {string} day
+ */
 function toUnav(day) {
+    // @ts-ignore
     $w("#" + day + "Av").collapse();
+    // @ts-ignore
     $w("#" + day + "Unav").expand();
     availableDays[day] = false;
     isValidForCreation();
+}
+$w("#foodPortionSizeInput").onFocus(() => {
+    $w("#foodPortionSizeInput").value = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
+});
+
+$w("#foodPortionSizeInput").onBlur(() => {
+    let cleanedText = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
+    if (cleanedText.length > 0)
+        $w("#foodPortionSizeInput").value = cleanedText + " гр.";
+    else {
+        $w("#foodPortionSizeInput").value = cleanedText;
+    }
+});
+$w("#foodMaxOrdersPerDay").onBlur(() => {
+    $w("#foodMaxOrdersPerDay").value = $w("#foodMaxOrdersPerDay").value.replace(/[^0-9]/g, "");
+});
+let cleanedPrice = "";
+$w("#foodPriceInput").onFocus(() => {
+    $w("#foodPriceInput").value = cleanedPrice;
+});
+
+$w("#foodPriceInput").onBlur(() => {
+    let cleanedPrice = $w("#foodPriceInput").value.replace(/[^\d,.]/g, "");
+    if (cleanedPrice.length > 0 && cleanedPrice != "0.00") {
+        cleanedPrice = charmPricing(cleanedPrice);
+        $w("#foodPriceInput").value = cleanedPrice + " лв.";
+        $w("#providerSlice").expand();
+        $w("#providerSlice").text = "" + slicePrice(cleanedPrice, "provider");
+    }
+    else {
+        $w("#foodPriceInput").value = "";
+        $w("#providerSlice").collapse();
+    }
+});
+
+function charmPricing(price) {
+    // Round the price to two decimal places
+    let roundedPrice = Math.round(price * 100) / 100;
+
+    // Determine the cents part of the price
+    let cents = Math.round((roundedPrice - Math.floor(roundedPrice)) * 100);
+
+    // Set the charm price based on the cents value
+    if (cents <= 25) {
+        // Decrease the whole number part by 1 to get the desired charm price
+        if (Math.floor(roundedPrice - 1) < 0)
+            return "0.00";
+        return Math.floor(roundedPrice - 1) + ".99";
+    } else if (cents > 25 && cents <= 75) {
+        return Math.floor(roundedPrice) + ".49";
+    }
+    else if (cents > 75) {
+        return Math.floor(roundedPrice) + ".99";
+    }
+}
+function slicePrice(price, side) {
+    switch (side) {
+        case "provider":
+            return Number((price * 0.75).toFixed(2));
+        case "babasgotvi":
+            return Number((price * 0.15).toFixed(2));
+        case "other":
+            return Number((price * 0.10).toFixed(2));
+        default:
+            return price;
+    }
 }
