@@ -40,8 +40,11 @@ function createFood() {
 }
 
 function isValidForCreation() {
-    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodIngredientsInput") && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay") && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged) {
-        if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"] || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
+    if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodIngredientsInput")
+        && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay")
+        && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged && cleanedPrice != "") {
+        if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"]
+            || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
             $w("#createFoodButton").enable();
             return true;
         }
@@ -129,9 +132,6 @@ function toAv(day) {
     availableDays[day] = true;
     isValidForCreation();
 }
-/**
- * @param {string} day
- */
 function toUnav(day) {
     // @ts-ignore
     $w("#" + day + "Av").collapse();
@@ -156,22 +156,30 @@ $w("#foodMaxOrdersPerDay").onBlur(() => {
     $w("#foodMaxOrdersPerDay").value = $w("#foodMaxOrdersPerDay").value.replace(/[^0-9]/g, "");
 });
 let cleanedPrice = "";
+$w("#providerSlice").collapse();
 $w("#foodPriceInput").onFocus(() => {
     $w("#foodPriceInput").value = cleanedPrice;
 });
 
+
 $w("#foodPriceInput").onBlur(() => {
-    let cleanedPrice = $w("#foodPriceInput").value.replace(/[^\d,.]/g, "");
+    let cleanedPrice = charmPricing($w("#foodPriceInput").value.replace(/[^\d,.]/g, ""));
     if (cleanedPrice.length > 0 && cleanedPrice != "0.00") {
-        cleanedPrice = charmPricing(cleanedPrice);
         $w("#foodPriceInput").value = cleanedPrice + " лв.";
         $w("#providerSlice").expand();
-        $w("#providerSlice").text = "" + slicePrice(cleanedPrice, "provider");
+        let slicedPriceProvider = slicePrice(cleanedPrice, "provider") + " лв.";
+        let slicedPriceBabaSgotvi = slicePrice(cleanedPrice, "babasgotvi") + " лв.";
+        let slicedPriceOther = slicePrice(cleanedPrice, "other") + " лв.";
+        $w("#providerSlice").html = `<span style="font-size: 1.5vw; font-weight: bold;">Печелите <span style="color: #42AF91;">${slicedPriceProvider}</span> от всяка продадена порция!</span>`;
+        $w("#babasgotviSlice").html = `<span style="font-size: 1.5vw; font-weight: bold; color: #D2D2D2;">БабаСготви взима ${slicedPriceBabaSgotvi}, за да покрие разходи</span>`;
+        $w("#otherSlice").html = `<span style="font-size: 1.5vw; font-weight: bold; color: #D2D2D2;">${slicedPriceOther} отиват за опаковка и доставка</span>`;
     }
     else {
         $w("#foodPriceInput").value = "";
+        $w("#providerSlice").text = "";
         $w("#providerSlice").collapse();
     }
+    isValidForCreation();
 });
 
 function charmPricing(price) {
