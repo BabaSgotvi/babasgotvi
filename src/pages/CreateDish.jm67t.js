@@ -3,6 +3,8 @@ import wixData from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
 let srcHasBeenChanged = false;
+let account;
+let portionSize;
 let availableDays = {
     mon: false,
     tue: false,
@@ -12,7 +14,8 @@ let availableDays = {
     sat: false,
     sun: false
 }
-$w.onReady(function () {
+$w.onReady(async function () {
+    await validateAccount();
     isValidForCreation();
     toUnav("mon"); toUnav("tue"); toUnav("wed"); toUnav("thu"); toUnav("fri"); toUnav("sat"); toUnav("sun");
 });
@@ -33,7 +36,31 @@ function uploadFoodImage() {
 
 function createFood() {
     if (isValidForCreation()) {
-        // Implement food creation logic here
+        const newFood = {
+            title: $w("#foodNameInput").value,
+            image: $w("#foodImage").src,
+            description: $w("#foodDescriptionInput").value,
+            ingredients: $w("#foodIngredientsInput").value,
+            price: cleanedPrice,
+            maxPerDay: $w("#foodMaxOrdersPerDay").value,
+            owner: account._id,
+            rating: "5.00",
+            portionSize: portionSize,
+            type: $w("#foodTypeDropdown").value,
+            monday: !$w("#monAv").collapsed
+            // TODO finish this createFood function
+        };
+
+        // Add the new item to the CMS collection
+        wixData.insert("FoodList", newItem)
+            .then((results) => {
+                const insertedItem = results; // The newly inserted item
+                console.log("New item inserted:", insertedItem);
+                wixLocation.to("/providerdashboard");
+            })
+            .catch((error) => {
+                console.error("Error inserting new item:", error);
+            });
     } else {
         // Handle invalid food creation scenario
     }
@@ -42,7 +69,7 @@ function createFood() {
 function isValidForCreation() {
     if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodIngredientsInput")
         && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay")
-        && $w("#foodMaxOrdersPerDay").value !== "0" && srcHasBeenChanged && cleanedPrice != "") {
+        && srcHasBeenChanged) {
         if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"]
             || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
             $w("#createFoodButton").enable();
@@ -145,28 +172,29 @@ $w("#foodPortionSizeInput").onFocus(() => {
 });
 
 $w("#foodPortionSizeInput").onBlur(() => {
-    let cleanedText = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
+    portionSize = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
     if (cleanedText.length > 0)
-        $w("#foodPortionSizeInput").value = cleanedText + " гр.";
+        $w("#foodPortionSizeInput").value = portionSize + " гр.";
     else {
-        $w("#foodPortionSizeInput").value = cleanedText;
+        $w("#foodPortionSizeInput").value = portionSize;
     }
 });
 $w("#foodMaxOrdersPerDay").onBlur(() => {
     $w("#foodMaxOrdersPerDay").value = $w("#foodMaxOrdersPerDay").value.replace(/[^0-9]/g, "");
+    if ($w("#foodMaxOrdersPerDay").value == "0")
+        $w("#foodMaxOrdersPerDay").value == "";
 });
 let cleanedPrice = "";
-$w("#providerSlice").collapse();
+$w("#priceBreakdownBox").collapse();
 $w("#foodPriceInput").onFocus(() => {
     $w("#foodPriceInput").value = cleanedPrice;
 });
-
 
 $w("#foodPriceInput").onBlur(() => {
     let cleanedPrice = charmPricing($w("#foodPriceInput").value.replace(/[^\d,.]/g, ""));
     if (cleanedPrice.length > 0 && cleanedPrice != "0.00") {
         $w("#foodPriceInput").value = cleanedPrice + " лв.";
-        $w("#providerSlice").expand();
+        $w("#priceBreakdownBox").expand();
         let slicedPriceProvider = slicePrice(cleanedPrice, "provider") + " лв.";
         let slicedPriceBabaSgotvi = slicePrice(cleanedPrice, "babasgotvi") + " лв.";
         let slicedPriceOther = slicePrice(cleanedPrice, "other") + " лв.";
@@ -177,7 +205,7 @@ $w("#foodPriceInput").onBlur(() => {
     else {
         $w("#foodPriceInput").value = "";
         $w("#providerSlice").text = "";
-        $w("#providerSlice").collapse();
+        $w("#priceBreakdownBox").collapse();
     }
     isValidForCreation();
 });
@@ -213,4 +241,30 @@ function slicePrice(price, side) {
         default:
             return price;
     }
+}
+function validateAccount() {
+    return new Promise((resolve, reject) => {
+        const accountKey = local.getItem("accountKey");
+        if (accountKey == null) {
+            wixLocation.to("/");
+            reject("Account key is null."); // Reject the promise if there's no accountKey
+        } else {
+            wixData.query("ProviderList")
+                .eq("accountKey", accountKey)
+                .find()
+                .then((results) => {
+                    if (results.items.length > 0) {
+                        account = results.items[0];
+                        resolve(account); // Resolve the promise with the account
+                    } else {
+                        wixLocation.to("/");
+                        reject("No account found."); // Reject the promise if no account is found
+                    }
+                })
+                .catch((error) => {
+                    wixLocation.to("/");
+                    reject(error); // Reject the promise on error
+                });
+        }
+    });
 }
