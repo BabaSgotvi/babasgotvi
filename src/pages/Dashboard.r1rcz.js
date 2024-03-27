@@ -34,6 +34,14 @@ $w.onReady(async function () {
             session.setItem("editFoodId", itemData._id);
             wixLocation.to("/savedish");
         });
+        $w("#deleteFoodButton").onClick(async () => {
+            let confirmation = await wixWindow.openLightbox("ConfirmFoodDelete");
+            if (confirmation == "confirmed") {
+                await wixData.remove("FoodList", itemData._id);
+                $w("#FoodList").refresh();
+                $w("#foodItemBox").collapse();
+            }
+        });
     });
 });
 
