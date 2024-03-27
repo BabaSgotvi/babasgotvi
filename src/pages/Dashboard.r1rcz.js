@@ -29,7 +29,11 @@ $w.onReady(async function () {
     $w("#FoodList").refresh();
     // @ts-ignore
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
-
+        $w("#editFoodButton").onClick(() => {
+            session.setItem("editMode", "true");
+            session.setItem("editFoodId", itemData._id);
+            wixLocation.to("/savedish");
+        });
     });
 });
 
@@ -123,7 +127,7 @@ $w("#logoutButton").onClick(() => {
     wixLocation.to("/");
 });
 $w("#deleteAccountButton").onClick(async () => {
-    let confirmation = await wixWindow.openLightbox("ConfirmDelete");
+    let confirmation = await wixWindow.openLightbox("ConfirmAccountDelete");
     if (confirmation == "confirmed") {
         await wixData.remove("ProviderList", account._id);
         const query = wixData.query("FoodList").eq("owner", account._id);
@@ -155,3 +159,8 @@ function switchMenuSections() {
     }
     return;
 }
+$w("#sendToSaveDishButton").onClick(() => {
+    session.setItem("editMode", "false");
+    session.setItem("editFoodId", "");
+    wixLocation.to("/savedish");
+});

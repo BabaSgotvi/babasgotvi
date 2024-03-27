@@ -4,6 +4,8 @@ import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
 let srcHasBeenChanged = false;
 let account;
+let editMode;
+let foodId;
 let portionSize;
 let availableDays = {
     mon: false,
@@ -14,13 +16,14 @@ let availableDays = {
     sat: false,
     sun: false
 }
+
 $w.onReady(async function () {
-    await validateAccount();
-    isValidForCreation();
+    await validateAndRetrieveData();
+    validateChangeButton();
     toUnav("mon"); toUnav("tue"); toUnav("wed"); toUnav("thu"); toUnav("fri"); toUnav("sat"); toUnav("sun");
 });
 $w("#uploadFoodImageButton").onChange(uploadFoodImage);
-$w("#createFoodButton").onClick(createFood);
+$w("#saveFoodButton").onClick(saveFood);
 
 function uploadFoodImage() {
     if ($w("#uploadFoodImageButton").value.length > 0) {
@@ -29,14 +32,14 @@ function uploadFoodImage() {
             .then((uploadedFiles) => {
                 $w("#foodImage").src = uploadedFiles[0].fileUrl;
                 srcHasBeenChanged = true;
-                isValidForCreation();
+                validateChangeButton();
             });
     }
 }
-
-function createFood() {
-    if (isValidForCreation()) {
-        const newFood = {
+function saveFood() {
+    if (validateChangeButton()) {
+        const savedFood = {
+            _id: foodId,
             title: $w("#foodNameInput").value,
             image: $w("#foodImage").src,
             description: $w("#foodDescriptionInput").value,
@@ -47,40 +50,42 @@ function createFood() {
             rating: "5.00",
             portionSize: portionSize,
             type: $w("#foodTypeDropdown").value,
-            monday: !$w("#monAv").collapsed
-            // TODO finish this createFood function
+            monday: $w("#monUnav").collapsed,
+            tuesday: $w("#tueUnav").collapsed,
+            wednesday: $w("#wedUnav").collapsed,
+            thursday: $w("#thuUnav").collapsed,
+            friday: $w("#friUnav").collapsed,
+            saturday: $w("#satUnav").collapsed,
+            sunday: $w("#sunUnav").collapsed
         };
 
         // Add the new item to the CMS collection
-        wixData.insert("FoodList", newItem)
+        wixData.save("FoodList", savedFood)
             .then((results) => {
-                const insertedItem = results; // The newly inserted item
-                console.log("New item inserted:", insertedItem);
                 wixLocation.to("/providerdashboard");
             })
             .catch((error) => {
-                console.error("Error inserting new item:", error);
+
             });
     } else {
         // Handle invalid food creation scenario
     }
 }
 
-function isValidForCreation() {
+function validateChangeButton() {
     if (isNotEmpty("#foodNameInput") && isNotEmpty("#foodDescriptionInput") && isNotEmpty("#foodIngredientsInput")
         && isNotEmpty("#foodPortionSizeInput") && isNotEmpty("#foodPriceInput") && isNotEmpty("#foodMaxOrdersPerDay")
         && srcHasBeenChanged) {
-        if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"]
-            || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
-            $w("#createFoodButton").enable();
+        if (availableDays["mon"] || availableDays["tue"] || availableDays["wed"] || availableDays["thu"] || availableDays["fri"] || availableDays["sat"] || availableDays["sun"]) {
+            $w("#saveFoodButton").enable();
             return true;
         }
         else {
-            $w("#createFoodButton").disable();
+            $w("#saveFoodButton").disable();
             return false;
         }
     } else {
-        $w("#createFoodButton").disable();
+        $w("#saveFoodButton").disable();
         return false;
     }
 }
@@ -90,22 +95,22 @@ function isNotEmpty(id) {
     return $w(id).value !== undefined && $w(id).value !== null && $w(id).value !== "";
 }
 $w("#foodNameInput").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 });
 $w("#foodDescriptionInput").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 });
 $w("#foodPortionSizeInput").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 });
 $w("#foodPriceInput").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 });
 $w("#foodMaxOrdersPerDay").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 });
 $w("#foodIngredientsInput").onChange(() => {
-    isValidForCreation();
+    validateChangeButton();
 })
 $w("#monAv").onClick(() => {
     toUnav("mon");
@@ -157,7 +162,7 @@ function toAv(day) {
     // @ts-ignore
     $w("#" + day + "Av").expand();
     availableDays[day] = true;
-    isValidForCreation();
+    validateChangeButton();
 }
 function toUnav(day) {
     // @ts-ignore
@@ -165,20 +170,21 @@ function toUnav(day) {
     // @ts-ignore
     $w("#" + day + "Unav").expand();
     availableDays[day] = false;
-    isValidForCreation();
+    validateChangeButton();
 }
 $w("#foodPortionSizeInput").onFocus(() => {
-    $w("#foodPortionSizeInput").value = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
+    $w("#foodPortionSizeInput").value = portionSize;
 });
 
 $w("#foodPortionSizeInput").onBlur(() => {
     portionSize = $w("#foodPortionSizeInput").value.replace(/[^0-9]/g, "");
-    if (cleanedText.length > 0)
+    if (portionSize.length > 0)
         $w("#foodPortionSizeInput").value = portionSize + " гр.";
     else {
         $w("#foodPortionSizeInput").value = portionSize;
     }
 });
+
 $w("#foodMaxOrdersPerDay").onBlur(() => {
     $w("#foodMaxOrdersPerDay").value = $w("#foodMaxOrdersPerDay").value.replace(/[^0-9]/g, "");
     if ($w("#foodMaxOrdersPerDay").value == "0")
@@ -187,11 +193,14 @@ $w("#foodMaxOrdersPerDay").onBlur(() => {
 let cleanedPrice = "";
 $w("#priceBreakdownBox").collapse();
 $w("#foodPriceInput").onFocus(() => {
-    $w("#foodPriceInput").value = cleanedPrice;
+    if (cleanedPrice != "0.00")
+        $w("#foodPriceInput").value = cleanedPrice;
+    else
+        $w("#foodPriceInput").value = "";
 });
 
 $w("#foodPriceInput").onBlur(() => {
-    let cleanedPrice = charmPricing($w("#foodPriceInput").value.replace(/[^\d,.]/g, ""));
+    cleanedPrice = charmPricing($w("#foodPriceInput").value.replace(/[^\d,.]/g, ""));
     if (cleanedPrice.length > 0 && cleanedPrice != "0.00") {
         $w("#foodPriceInput").value = cleanedPrice + " лв.";
         $w("#priceBreakdownBox").expand();
@@ -207,7 +216,7 @@ $w("#foodPriceInput").onBlur(() => {
         $w("#providerSlice").text = "";
         $w("#priceBreakdownBox").collapse();
     }
-    isValidForCreation();
+    validateChangeButton();
 });
 
 function charmPricing(price) {
@@ -242,6 +251,7 @@ function slicePrice(price, side) {
             return price;
     }
 }
+
 function validateAccount() {
     return new Promise((resolve, reject) => {
         const accountKey = local.getItem("accountKey");
@@ -267,4 +277,68 @@ function validateAccount() {
                 });
         }
     });
+}
+function retrieveData() {
+    editMode = session.getItem("editMode");
+    foodId = session.getItem("editFoodId");
+    if (foodId == null || foodId == undefined || foodId == "") {
+        foodId = account._id + generateId(25);
+    }
+    if (editMode == "true") {
+        wixData.get("FoodList", foodId)
+            .then((result) => {
+                $w("#foodNameInput").value = result.title;
+                $w("#foodImage").src = result.image;
+                $w("#foodDescriptionInput").value = result.description;
+                $w("#foodIngredientsInput").value = result.ingredients;
+                cleanedPrice = $w("#foodPriceInput").value = result.price;
+                $w("#foodMaxOrdersPerDay").value = result.maxPerDay;
+                $w("#foodPortionSizeInput").value = result.portionSize;
+                $w("#foodTypeDropdown").value = result.type;
+                collapseOrExpand("mon", result.monday);
+                collapseOrExpand("tue", result.tuesday);
+                collapseOrExpand("wed", result.wednesday);
+                collapseOrExpand("thu", result.thursday);
+                collapseOrExpand("fri", result.friday);
+                collapseOrExpand("sat", result.saturday);
+                collapseOrExpand("sun", result.sunday);
+                srcHasBeenChanged = true;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+}
+async function validateAndRetrieveData() {
+    try {
+        await validateAccount();
+        retrieveData();
+    } catch (error) {
+        console.error(error);
+    }
+}
+function collapseOrExpand(day, expand) {
+    console.log("day: " + day + "; expand: " + expand);
+    if (expand) {
+        // @ts-ignore
+        $w("#" + day + "Av").expand();
+        // @ts-ignore
+        $w("#" + day + "Unav").collapse();
+    }
+    else {
+        // @ts-ignore
+        $w("#" + day + "Unav").expand();
+        // @ts-ignore
+        $w("#" + day + "Av").collapse();
+    }
+    availableDays[day] = expand;
+}
+function generateId(length) {
+    let result = '';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
 }
