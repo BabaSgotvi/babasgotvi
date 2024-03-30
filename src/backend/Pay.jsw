@@ -1,0 +1,25 @@
+import wixPay from 'wix-pay-backend';
+
+export function createMyPayment() {
+    // Step 3 - Create payment info object.
+    // Here we use static data. You might want to use data from a
+    // collection. To see an example of such a usage, see the API Reference.
+    let paymentInfo = {
+        "items": [
+            {
+                name: "Product 1",
+                price: 9.99
+            },
+            {
+                name: "Product 2",
+                price: 19.99
+            }
+        ],
+        amount: 29.98
+    }
+
+    // Step 4 - Call createPayment() with the payment information 
+    // and return the paymentId.
+    // (Next, see step 5 in the client-side code above.)
+    return wixPay.createPayment(paymentInfo);
+}

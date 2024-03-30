@@ -1,0 +1,12 @@
+import wixData from 'wix-data';
+import wixPay from 'wix-pay'; // Assuming you have the wix-pay module installed
+import wixPayFrontend from 'wix-pay-frontend';
+import wixPayBackend from 'wix-pay-backend';
+
+export function emptyBalance(amount, id, key) {
+    // TODO: send money to the provider
+
+}
+export function getBalance(id, key) {
+    return "get balanced has been called!";
+}
