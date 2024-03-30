@@ -165,9 +165,17 @@ $w.onReady(async function () {
   }
 });
 $w("#orderButton").onClick(() => {
-  wixLocation.to("/checkout");
+  let orderItems = [];
+  for (let i = 0; i < cartList.length; i++) {
+    if (cartList[i] && foodAmount[i]) {
+      orderItems.push({
+        foodId: cartList[i],
+        amount: foodAmount[i]
+      });
+    }
+  }
+  session.setItem("cart", JSON.stringify(orderItems));
 });
-
 //
 /// TODO: ADD FOOD FILTERING BASED ON AVAILABLE DAYS
 //
