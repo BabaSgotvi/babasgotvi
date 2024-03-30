@@ -10,21 +10,24 @@ const sections = {
     account: 3,
 };
 let currentSection = sections.orders;
-const menuSections =
+const cutOffOptions =
 {
-    catalogue: 1,
-    settings: 2
+    threedaysbeforemidnight: 1, // 3 дни преди полунощ
+    twodaysbeforenoon: 2, // 2 дни преди обяд
+    twodaysbeforemidnight: 3, // 2 дни преди полунощ
+    daybeforenoon: 4, // ден преди обяд
+    daybeforemidnight: 5, // ден преди полунощ
 }
-let currentMenuSection = menuSections.catalogue;
-
+let currentCutOffOption = cutOffOptions.daybeforenoon;
 $w.onReady(async function () {
     await validateAccount();
     let doTour = local.getItem("tour");
     if (doTour == "doTour")
         Tour();
+    retrieveData();
     changeSection();
-    switchMenuSections();
     displayProfile();
+    changeCutOffOption();
     $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id));
     $w("#FoodList").refresh();
     // @ts-ignore
@@ -148,27 +151,94 @@ $w("#deleteAccountButton").onClick(async () => {
         wixLocation.to("/");
     }
 });
-$w("#switchToMenuCatalogue").onClick(() => {
-    currentMenuSection = menuSections.catalogue;
-    switchMenuSections();
-});
-$w("#switchToMenuSettings").onClick(() => {
-    currentMenuSection = menuSections.settings;
-    switchMenuSections();
-})
-function switchMenuSections() {
-    if (currentMenuSection == menuSections.catalogue) {
-        $w("#switchToMenuCatalogue").disable();
-        $w("#switchToMenuSettings").enable();
-    }
-    else {
-        $w("#switchToMenuCatalogue").enable();
-        $w("#switchToMenuSettings").disable();
-    }
-    return;
-}
 $w("#sendToSaveDishButton").onClick(() => {
     session.setItem("editMode", "false");
     session.setItem("editFoodId", "");
     wixLocation.to("/savedish");
 });
+function changeCutOffOption() {
+    switch (currentCutOffOption) {
+        case cutOffOptions.threedaysbeforemidnight:
+            $w("#threedaysbeforemidnight").disable();
+            $w("#twodaysbeforenoon").enable();
+            $w("#twodaysbeforemidnight").enable();
+            $w("#daybeforenoon").enable();
+            $w("#daybeforemidnight").enable();
+            break;
+        case cutOffOptions.twodaysbeforenoon:
+            $w("#threedaysbeforemidnight").enable();
+            $w("#twodaysbeforenoon").disable();
+            $w("#twodaysbeforemidnight").enable();
+            $w("#daybeforenoon").enable();
+            $w("#daybeforemidnight").enable();
+            break;
+        case cutOffOptions.twodaysbeforemidnight:
+            $w("#threedaysbeforemidnight").enable();
+            $w("#twodaysbeforenoon").enable();
+            $w("#twodaysbeforemidnight").disable();
+            $w("#daybeforenoon").enable();
+            $w("#daybeforemidnight").enable();
+            break;
+        case cutOffOptions.daybeforenoon:
+            $w("#threedaysbeforemidnight").enable();
+            $w("#twodaysbeforenoon").enable();
+            $w("#twodaysbeforemidnight").enable();
+            $w("#daybeforenoon").disable();
+            $w("#daybeforemidnight").enable();
+            break;
+        case cutOffOptions.daybeforemidnight:
+            $w("#threedaysbeforemidnight").enable();
+            $w("#twodaysbeforenoon").enable();
+            $w("#twodaysbeforemidnight").enable();
+            $w("#daybeforenoon").enable();
+            $w("#daybeforemidnight").disable();
+            break;
+    }
+}
+$w("#threedaysbeforemidnight").onClick(() => {
+    currentCutOffOption = cutOffOptions.threedaysbeforemidnight;
+    // saveMenuSettings();
+    changeCutOffOption();
+});
+$w("#twodaysbeforenoon").onClick(() => {
+    currentCutOffOption = cutOffOptions.twodaysbeforenoon;
+    // saveMenuSettings();
+    changeCutOffOption();
+});
+$w("#twodaysbeforemidnight").onClick(() => {
+    currentCutOffOption = cutOffOptions.twodaysbeforemidnight;
+    // saveMenuSettings();
+    changeCutOffOption();
+});
+$w("#daybeforenoon").onClick(() => {
+    currentCutOffOption = cutOffOptions.daybeforenoon;
+    // saveMenuSettings();
+    changeCutOffOption();
+});
+$w("#daybeforemidnight").onClick(() => {
+    currentCutOffOption = cutOffOptions.daybeforemidnight;
+    // saveMenuSettings();
+    changeCutOffOption();
+});
+$w("#maxOrdersPerDayInput").onBlur(() => {
+    let amount = parseInt($w("#maxOrdersPerDayInput").value.replace(/[^0-9]/g, ""));
+    if (amount == null || amount == undefined || amount <= 0 || isNaN(amount))
+        amount = 5;
+    else if (amount >= 20)
+        amount = 20;
+    $w("#maxOrdersPerDayInput").value = "" + amount;
+    // saveMenuSettings();
+});
+$w("#maxOrdersPerDayInput").onFocus(() => {
+    $w("#maxOrdersPerDayInput").value = $w("#maxOrdersPerDayInput").value.replace(/[^0-9]/g, "");
+});
+// function saveMenuSettings() {
+//     let changed = account;
+//     changed.maxOrdersPerDay = parseInt($w("#maxOrdersPerDayInput").value);
+//     changed.cutOffOption = currentCutOffOption;
+//     await wixData.save("ProviderList", changed);
+// };
+function retrieveData() {
+    $w("#maxOrdersPerDayInput").value = "" + account.maxOrdersPerDay;
+    currentCutOffOption = account.cutOffOption;
+}

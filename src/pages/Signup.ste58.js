@@ -180,6 +180,19 @@ function createAccount() {
     phoneNumber: $w("#phoneNumberInput").value,
     email: $w("#emailInput").value,
     accountKey: accountKey,
+    rating: "5.00",
+    ratings: "0",
+    served: "0",
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    saturday: false,
+    sunday: false,
+    balance: "0",
+    allTimeEarned: "0",
+    orderCutoff: "4"
   };
   wixData
     .insert("ProviderList", newAccount)
