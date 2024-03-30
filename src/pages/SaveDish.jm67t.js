@@ -62,6 +62,7 @@ function saveFood() {
         // Add the new item to the CMS collection
         wixData.save("FoodList", savedFood)
             .then((results) => {
+                syncAvaiableDaysWithFood();
                 wixLocation.to("/providerdashboard");
             })
             .catch((error) => {
@@ -341,4 +342,43 @@ function generateId(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+function syncAvaiableDaysWithFood() {
+    let changed = account;
+    let monday = false;
+    let tuesday = false;
+    let wednesday = false;
+    let thursday = false;
+    let friday = false;
+    let saturday = false;
+    let sunday = false;
+    wixData.query("FoodList")
+        .eq("owner", account._id)
+        .find()
+        .then((results) => {
+            results.items.forEach((food) => {
+                if (food.monday == true)
+                    monday = true;
+                if (food.tuesday == true)
+                    tuesday = true;
+                if (food.wednesday == true)
+                    wednesday = true;
+                if (food.thursday == true)
+                    thursday = true;
+                if (food.friday == true)
+                    friday = true;
+                if (food.saturday == true)
+                    saturday = true;
+                if (food.sunday == true)
+                    sunday = true;
+            });
+            changed.monday = monday;
+            changed.tuesday = tuesday;
+            changed.wednesday = wednesday;
+            changed.thursday = thursday;
+            changed.friday = friday;
+            changed.saturday = saturday;
+            changed.sunday = sunday;
+            wixData.save("ProviderList", changed);
+        });
 }

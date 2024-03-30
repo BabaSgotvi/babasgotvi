@@ -1,16 +1,10 @@
-//
-/// IMPORTS
-//
-
 import wixLocation from 'wix-location';
 import wixData from 'wix-data';
 import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
 import * as timeManager from 'public/timeManager';
-
 let allDates;
-//
 let deliveryDate;
 $w.onReady(function () {
     initializeElements();
@@ -18,7 +12,6 @@ $w.onReady(function () {
 $w("#providerList").onReady(() => {
     refreshListed();
 })
-
 function refreshListed() {
     $w("#providerList").setFilter(wixData.filter().eq(timeManager.getDayOfWeek(deliveryDate, "EN"), true));
     $w("#providerList").refresh();
@@ -30,7 +23,6 @@ function refreshListed() {
         });
     })
 }
-
 function initializeElements() {
     allDates = timeManager.getNextTwoWeeks();
 
@@ -63,3 +55,7 @@ $w("#deliveryDate").onClick(async () => {
     refreshListed();
 });
 
+
+//
+/// TODO: ADD ORDER CUTOFF TIME FILTERING
+//

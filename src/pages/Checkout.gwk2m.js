@@ -8,3 +8,15 @@ $w.onReady(function () {
 
     // Click 'Preview' to run your code
 });
+
+//
+/// TODO: CHECKOUT
+//
+
+//
+/// TODO: ADD SEND ORDER TO CMS AND PROVIDER
+//
+
+//
+/// TODO: ADD CANCELATION
+//

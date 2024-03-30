@@ -167,3 +167,7 @@ $w.onReady(async function () {
 $w("#orderButton").onClick(() => {
   wixLocation.to("/checkout");
 });
+
+//
+/// TODO: ADD FOOD FILTERING BASED ON AVAILABLE DAYS
+//

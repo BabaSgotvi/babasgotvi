@@ -21,6 +21,7 @@ const cutOffOptions =
 let currentCutOffOption = cutOffOptions.daybeforenoon;
 $w.onReady(async function () {
     await validateAccount();
+    syncAvaiableDaysWithFood();
     let doTour = local.getItem("tour");
     if (doTour == "doTour")
         Tour();
@@ -197,27 +198,27 @@ function changeCutOffOption() {
 }
 $w("#threedaysbeforemidnight").onClick(() => {
     currentCutOffOption = cutOffOptions.threedaysbeforemidnight;
-    // saveMenuSettings();
+    saveMenuSettings();
     changeCutOffOption();
 });
 $w("#twodaysbeforenoon").onClick(() => {
     currentCutOffOption = cutOffOptions.twodaysbeforenoon;
-    // saveMenuSettings();
+    saveMenuSettings();
     changeCutOffOption();
 });
 $w("#twodaysbeforemidnight").onClick(() => {
     currentCutOffOption = cutOffOptions.twodaysbeforemidnight;
-    // saveMenuSettings();
+    saveMenuSettings();
     changeCutOffOption();
 });
 $w("#daybeforenoon").onClick(() => {
     currentCutOffOption = cutOffOptions.daybeforenoon;
-    // saveMenuSettings();
+    saveMenuSettings();
     changeCutOffOption();
 });
 $w("#daybeforemidnight").onClick(() => {
     currentCutOffOption = cutOffOptions.daybeforemidnight;
-    // saveMenuSettings();
+    saveMenuSettings();
     changeCutOffOption();
 });
 $w("#maxOrdersPerDayInput").onBlur(() => {
@@ -227,18 +228,86 @@ $w("#maxOrdersPerDayInput").onBlur(() => {
     else if (amount >= 20)
         amount = 20;
     $w("#maxOrdersPerDayInput").value = "" + amount;
-    // saveMenuSettings();
+    saveMenuSettings();
 });
 $w("#maxOrdersPerDayInput").onFocus(() => {
     $w("#maxOrdersPerDayInput").value = $w("#maxOrdersPerDayInput").value.replace(/[^0-9]/g, "");
 });
-// function saveMenuSettings() {
-//     let changed = account;
-//     changed.maxOrdersPerDay = parseInt($w("#maxOrdersPerDayInput").value);
-//     changed.cutOffOption = currentCutOffOption;
-//     await wixData.save("ProviderList", changed);
-// };
+async function saveMenuSettings() {
+    let changed = account;
+    changed.maxOrdersPerDay = parseInt($w("#maxOrdersPerDayInput").value);
+    changed.cutOffOption = currentCutOffOption;
+    await wixData.save("ProviderList", changed);
+};
 function retrieveData() {
     $w("#maxOrdersPerDayInput").value = "" + account.maxOrdersPerDay;
     currentCutOffOption = account.cutOffOption;
 }
+
+function syncAvaiableDaysWithFood() {
+    let changed = account;
+    let monday = false;
+    let tuesday = false;
+    let wednesday = false;
+    let thursday = false;
+    let friday = false;
+    let saturday = false;
+    let sunday = false;
+    wixData.query("FoodList")
+        .eq("owner", account._id)
+        .find()
+        .then((results) => {
+            results.items.forEach((food) => {
+                if (food.monday == true)
+                    monday = true;
+                if (food.tuesday == true)
+                    tuesday = true;
+                if (food.wednesday == true)
+                    wednesday = true;
+                if (food.thursday == true)
+                    thursday = true;
+                if (food.friday == true)
+                    friday = true;
+                if (food.saturday == true)
+                    saturday = true;
+                if (food.sunday == true)
+                    sunday = true;
+            });
+            changed.monday = monday;
+            changed.tuesday = tuesday;
+            changed.wednesday = wednesday;
+            changed.thursday = thursday;
+            changed.friday = friday;
+            changed.saturday = saturday;
+            changed.sunday = sunday;
+            wixData.save("ProviderList", changed);
+        });
+}
+
+//
+/// TODO: ADD EDITING PROFILE
+//
+//
+/// TODO: ADD CHANGING / RESETING PROFILE DATA ( like password, address, phone number, etc.) using verification messages
+//
+//
+
+/// TODO: ADD ORDERS
+//
+
+//
+/// TODO: ADD BALANCE SYSTEM
+//
+
+//
+/// TODO: ADD NOTIFICATIONS
+//
+
+//
+/// TODO: ADD BUYING PACKAGING
+//
+
+//
+/// TODO: ADD TOUR
+//
+

@@ -213,3 +213,8 @@ function generateRandomString(length) {
   }
   return result;
 }
+
+//
+/// TODO: ADD EMAIL, PHONENUMBER, VERIFICATION ( meaning:
+// checking if the email and phonenumber are not in use
+// and sending an SMS and an email verification message to make sure the user is real)
