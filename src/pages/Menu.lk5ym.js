@@ -190,3 +190,40 @@ function removeNullItemsFromArray(array) {
 //
 /// TODO: ADD FOOD FILTERING BASED ON AVAILABLE DAYS
 //
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import { charge } from 'backend/stripeProxy';
+
+$w.onReady(() => {
+  $w("#html1").postMessage("");
+  $w("#html1").onMessage((event) => {
+    let token = JSON.parse(event.data);
+    console.log(token);
+
+    charge(token.id, getCart())
+      .then((chargeResponse) => {
+        console.log("Charge ID: " + chargeResponse.id);
+
+      });
+  });
+
+});
+
+function getCart() {
+  return {
+    "amount": $w("#amount").value * 100,
+    "currency": "BGN",
+    "description": "whatever"
+  };
+}

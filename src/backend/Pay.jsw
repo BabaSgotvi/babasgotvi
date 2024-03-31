@@ -64,3 +64,44 @@ async function getItemFromDatabase(id) {
         throw error; // Re-throw the error to be caught by the calling function
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+import { fetch } from 'wix-fetch';
+
+export function charge(token, cart) {
+
+    //Go to stripe.com to create a test key and replace the one in the example
+    const apiKey = "sk_test_B0b0hiSJcxMVZIXlqWWEX2kq";
+
+    return fetch("https://api.stripe.com/v1/charges", {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Authorization': "Bearer " + apiKey
+        },
+        body: encodeBody(token, cart)
+
+    })
+        .then((httpResponse) => {
+            if (httpResponse.ok) {
+                return httpResponse.json();
+            }
+        });
+
+}
+function encodeBodyToken(token, cart) {
+
+    let encoded = "";
+
+    for (let [k, v] of Object.entries(cart)) {
+        encoded = encoded.concat(k, "=", encodeURI(v), "&");
+    }
+    encoded = encoded.concat("source=", encodeURI(token));
+    console.log("Encoded" + encoded);
+    return encoded;
+}
