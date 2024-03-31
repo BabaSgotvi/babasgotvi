@@ -1,11 +1,66 @@
 import wixPayBackend from 'wix-pay-backend';
+import wixData from 'wix-data';
 
-export function createPaymentObj(ids, amounts) {
-    return wixPayBackend.createPayment({
-        items: [{
-            name: "Product Name",
-            price: 1.99
-        }],
-        amount: 1.99
+export async function createPaymentObj(ids, amounts) {
+    console.log("Creating payment object");
+    console.log("ids: " + ids);
+    console.log("amounts: " + amounts);
+
+    let orderItems = [];
+
+    // Iterate over the IDs array
+    for (let i = 0; i < ids.length; i++) {
+        try {
+            // Retrieve the item from the database using await to wait for the asynchronous operation
+            const item = await getItemFromDatabase(ids[i]);
+
+            // Get the quantity corresponding to the current item
+            const quantity = amounts[i] || 1; // If the quantity is not provided, default to 0
+            const price = parseFloat(item.price).toFixed(2);
+            // Create an object for the item
+            const orderItem = {
+                name: item.title,
+                price: price,
+                quantity: quantity
+            };
+
+            // Add the object to the array
+            orderItems.push(orderItem);
+        } catch (error) {
+            console.error(`Error retrieving item with ID ${ids[i]}:`, error);
+        }
+    }
+
+    // Calculate the total amount
+    const totalAmount = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+    // Create the payment object
+    const paymentObj = await wixPayBackend.createPayment({
+        items: orderItems,
+        amount: totalAmount
     });
+
+    return paymentObj;
+}
+
+// Function to retrieve item from the database asynchronously
+async function getItemFromDatabase(id) {
+    try {
+        // Query the 'FoodList' collection to find the item with the specified ID
+        const queryResult = await wixData.query('FoodList')
+            .eq('_id', id) // Filter by the ID
+            .find();
+
+        // Check if any item was found
+        if (queryResult.items.length > 0) {
+            // Return the first item found (assuming IDs are unique)
+            return queryResult.items[0];
+        } else {
+            throw new Error(`Item with ID ${id} not found in the database`);
+        }
+    } catch (error) {
+        // Handle errors
+        console.error('Error retrieving item from the database:', error);
+        throw error; // Re-throw the error to be caught by the calling function
+    }
 }

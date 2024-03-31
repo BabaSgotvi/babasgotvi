@@ -3,6 +3,7 @@ import wixData from "wix-data";
 import wixLocation from "wix-location";
 import { local, session, memory } from "wix-storage-frontend";
 import wixWindow from 'wix-window';
+import { formatDate } from "public/timeManager";
 
 // vars
 let providerId;
@@ -165,17 +166,27 @@ $w.onReady(async function () {
   }
 });
 $w("#orderButton").onClick(() => {
-  let orderItems = [];
-  for (let i = 0; i < cartList.length; i++) {
-    if (cartList[i] && foodAmount[i]) {
-      orderItems.push({
-        foodId: cartList[i],
-        amount: foodAmount[i]
-      });
+  let CheckoutIds = removeNullItemsFromArray(cartList);
+  let CheckoutAmounts = removeNullItemsFromArray(foodAmount);
+  session.setItem("CheckoutIds", JSON.stringify(CheckoutIds));
+  session.setItem("CheckoutAmounts", JSON.stringify(CheckoutAmounts));
+  // copy the data of the checkoutRepeater and set it in session storage
+  let checkoutData = [];
+  $w("#checkoutRepeater").forEachItem(($w, itemData) => {
+    checkoutData.push(itemData);
+  });
+  session.setItem("checkoutData", JSON.stringify(checkoutData));
+  wixLocation.to("/checkout");
+});
+function removeNullItemsFromArray(array) {
+  let newArray = [];
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] != null) {
+      newArray.push(array[i]);
     }
   }
-  session.setItem("cart", JSON.stringify(orderItems));
-});
+  return newArray;
+}
 //
 /// TODO: ADD FOOD FILTERING BASED ON AVAILABLE DAYS
 //

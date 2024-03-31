@@ -3,18 +3,14 @@ import wixPayFrontend from 'wix-pay-frontend';
 import { local, session, memory } from "wix-storage-frontend";
 let ids = [];
 let amounts = [];
+retrieveCart();
 function retrieveCart() {
-    let cart = local.getItem("cart");
-    if (cart) {
-        cart = JSON.parse(cart);
-    }
+    ids = JSON.parse(session.getItem("CheckoutIds"));
+    amounts = JSON.parse(session.getItem("CheckoutAmounts"));
 }
 $w("#payButton").onClick((event) => {
-    console.log("Pay button clicked");
     createPaymentObj(ids, amounts).then(payment => {
-        console.log("Payment object created");
         wixPayFrontend.startPayment(payment.id).then(() => {
-            console.log("Payment started");
         });
     });
 });
