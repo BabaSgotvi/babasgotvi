@@ -203,27 +203,29 @@ function removeNullItemsFromArray(array) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-import { charge } from 'backend/stripeProxy';
+// import { charge } from 'backend/stripeProxy';
 
-$w.onReady(() => {
-  $w("#html1").postMessage("");
-  $w("#html1").onMessage((event) => {
-    let token = JSON.parse(event.data);
-    console.log(token);
+// console.log("1");
+// $w("#html1").postMessage("");
+// console.log("2");
+// $w("#html1").onMessage((event) => {
+//   console.log("3");
+//   let token = JSON.parse(event.data);
+//   console.log("4");
+//   console.log(token);
+//   console.log("5");
+//   charge(token.id, getCart())
+//     .then((chargeResponse) => {
+//       console.log("6");
+//       console.log("Charge ID: " + chargeResponse.id);
 
-    charge(token.id, getCart())
-      .then((chargeResponse) => {
-        console.log("Charge ID: " + chargeResponse.id);
+//     });
+// });
 
-      });
-  });
-
-});
-
-function getCart() {
-  return {
-    "amount": $w("#amount").value * 100,
-    "currency": "BGN",
-    "description": "whatever"
-  };
-}
+// function getCart() {
+//   return {
+//     "amount": 100,
+//     "currency": "BGN",
+//     "description": "whatever"
+//   };
+// }3
