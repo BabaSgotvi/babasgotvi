@@ -1,4 +1,4 @@
-import { createPaymentObj } from 'backend/Pay';
+import * as Pay from 'backend/Pay';
 import wixPayFrontend from 'wix-pay-frontend';
 import { local, session, memory } from "wix-storage-frontend";
 let ids = [];
@@ -9,10 +9,16 @@ function retrieveCart() {
     amounts = JSON.parse(session.getItem("CheckoutAmounts"));
 }
 $w("#payButton").onClick((event) => {
-    createPaymentObj(ids, amounts).then(payment => {
+    Pay.createPaymentObj(ids, amounts).then(payment => {
         wixPayFrontend.startPayment(payment.id).then(() => {
         });
     });
+});
+
+$w("#button1").onClick(() => {
+    console.log("clicked");
+    Pay.payIBAN("BG45INTF40012090790288");
+    console.log("after payIBAN");
 });
 
 //
