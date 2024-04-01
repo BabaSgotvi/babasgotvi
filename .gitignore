@@ -4,4 +4,4 @@ node_modules/
 .idea/
 .wix/
 jsconfig.json
-secretVars.js
+# secretVars.js
