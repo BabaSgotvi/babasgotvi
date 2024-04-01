@@ -1,1 +1,1 @@
-const Stripe_Secret_Key = 'something'; // DO NOT SHARE. IF OBTAINED, THE STRIPE ACCOUNT CAN BE EMPTIED
+const Stripe_Secret_Key = 'change'; // DO NOT SHARE. IF OBTAINED, THE STRIPE ACCOUNT CAN BE EMPTIED
