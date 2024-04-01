@@ -11,7 +11,6 @@ let cartList = [];
 let foodAmount = [];
 let priceList = [];
 $w.onReady(async function () {
-  console.log("Menu Page");
   providerId = wixLocationFrontend.query.Id;
   if (providerId == undefined) {
     wixLocation.to("/");
