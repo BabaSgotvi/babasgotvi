@@ -70,38 +70,38 @@ async function getItemFromDatabase(id) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-import { fetch } from 'wix-fetch';
+// import { fetch } from 'wix-fetch';
 
-export function charge(token, cart) {
+// export function charge(token, cart) {
 
-    //Go to stripe.com to create a test key and replace the one in the example
-    const apiKey = "sk_test_B0b0hiSJcxMVZIXlqWWEX2kq";
+//     //Go to stripe.com to create a test key and replace the one in the example
+// const apiKey = "apikeyhere";
 
-    return fetch("https://api.stripe.com/v1/charges", {
-        method: 'post',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': "application/x-www-form-urlencoded",
-            'Authorization': "Bearer " + apiKey
-        },
-        body: encodeBody(token, cart)
+//     return fetch("https://api.stripe.com/v1/charges", {
+//         method: 'post',
+//         headers: {
+//             'Accept': 'application/json',
+//             'Content-Type': "application/x-www-form-urlencoded",
+//             'Authorization': "Bearer " + apiKey
+//         },
+//         body: encodeBody(token, cart)
 
-    })
-        .then((httpResponse) => {
-            if (httpResponse.ok) {
-                return httpResponse.json();
-            }
-        });
+//     })
+//         .then((httpResponse) => {
+//             if (httpResponse.ok) {
+//                 return httpResponse.json();
+//             }
+//         });
 
-}
-function encodeBodyToken(token, cart) {
+// }
+// function encodeBodyToken(token, cart) {
 
-    let encoded = "";
+//     let encoded = "";
 
-    for (let [k, v] of Object.entries(cart)) {
-        encoded = encoded.concat(k, "=", encodeURI(v), "&");
-    }
-    encoded = encoded.concat("source=", encodeURI(token));
-    console.log("Encoded" + encoded);
-    return encoded;
-}
+//     for (let [k, v] of Object.entries(cart)) {
+//         encoded = encoded.concat(k, "=", encodeURI(v), "&");
+//     }
+//     encoded = encoded.concat("source=", encodeURI(token));
+//     console.log("Encoded" + encoded);
+//     return encoded;
+// }
