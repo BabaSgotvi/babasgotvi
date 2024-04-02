@@ -9,5 +9,10 @@
     "postinstall": "wix sync-types",
     "dev": "wix dev",
     "lint": "eslint ."
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^3.2.0",
+    "node": "^18.20.0",
+    "stripe": "^14.23.0"
   }
 }

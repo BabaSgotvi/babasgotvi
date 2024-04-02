@@ -1,0 +1,73 @@
+import { fetch } from 'wix-fetch';
+import { STRIPE_SECRET_KEY } from 'backend/PayKeys';
+
+const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
+
+export async function charge(token, payment, userId) {
+
+    const cart = payment;
+    const response = await fetch("https://api.stripe.com/v1/charges", {
+        method: 'post',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Bearer " + apiKey
+        },
+        body: encodeBody(token, cart)
+    });
+    if (response.status >= 200 && response.status < 300) {
+        // transaction successful - get charge ID
+        const ret = await response.json();
+        // let id = await setPaidStatus(userId, ret.id);
+        return { "chargeId": ret.id };
+    }
+    // transaction failed - return error type
+    let res = await response.json();
+    let err = res.error.type;
+    return { "error": err };
+}
+
+function encodeBody(token, cart) {
+    let encoded = "";
+    for (let [k, v] of Object.entries(cart)) {
+        encoded = encoded.concat(k, "=", encodeURI(v), "&");
+    }
+    encoded = encoded.concat("source=", encodeURI(token));
+    return encoded;
+}
+
+export async function testCharge() {
+
+    /*
+    // This function performs a simple integration test
+    // and is only used for testing purposes.
+    // For more details, see: https://stripe.com/docs/development
+	
+    // Call this function on any page using the following snippet:
+	
+    // import statement at beginning of file
+    import {testCharge} from 'backend/stripeProxy';
+
+    // put this in the page's onReady() function
+    testCharge()
+        .then((response) => {
+            console.log(response);
+        });
+    */
+
+    let cart = {
+        amount: '999',
+        currency: 'usd',
+        source: 'tok_visa',
+        receipt_email: 'your@emailaddress.com'
+    };
+    const response = await fetch("https://api.stripe.com/v1/charges", {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': "application/x-www-form-urlencoded",
+            'Authorization': "Bearer " + apiKey
+        },
+        body: encodeBody('tok_visa', cart)
+    });
+    return await response.json();
+}

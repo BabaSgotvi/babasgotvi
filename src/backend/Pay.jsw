@@ -2,6 +2,7 @@ import wixPayBackend from 'wix-pay-backend';
 import wixData from 'wix-data';
 import { STRIPE_SECRET_KEY } from 'backend/PayKeys';
 
+
 export async function createPaymentObj(ids, amounts) {
     console.log("Creating payment object");
     console.log("ids: " + ids);
@@ -70,17 +71,21 @@ async function getItemFromDatabase(id) {
 ////
 ////
 
-// import Stripe from 'stripe';
+// import Stripe from 'stripe'; THE FUCKING THING EXISTS, BUT WIX CAN'T FIND IT!
 
 export async function transferToBankAccount(amount, currency, destinationBankAccountId) {
-    const stripe = require('stripe')(STRIPE_SECRET_KEY);
-    console.log("stripe: " + stripe);
     try {
+
+        // Create a new Stripe instance with your secret key
+        const stripe = Stripe(STRIPE_SECRET_KEY);
+
+        // Now you can use the stripe instance to make API calls
         const transfer = await stripe.transfers.create({
             amount: amount,
             currency: currency,
             destination: destinationBankAccountId,
         });
+
         return transfer;
     } catch (error) {
         console.error('Error transferring funds to bank account:', error);
