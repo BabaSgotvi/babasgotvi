@@ -1,6 +1,7 @@
 import wixPayBackend from 'wix-pay-backend';
 import wixData from 'wix-data';
 import { STRIPE_SECRET_KEY } from 'backend/PayKeys';
+
 export async function createPaymentObj(ids, amounts) {
     console.log("Creating payment object");
     console.log("ids: " + ids);
@@ -65,82 +66,24 @@ async function getItemFromDatabase(id) {
     }
 }
 
-export async function payIBAN(IBAN) {
-    console.log("entered the function");
-    const apiUrl = 'https://api.stripe.com/v1/transfers';
+////
+////
+////
 
-    // Set up the transfer data
-    const transferData = {
-        amount: 150, // Amount in cents
-        currency: 'bgn', // Currency code
-        destination: IBAN, // Set the IBAN directly as the destination
-    };
+// import Stripe from 'stripe';
 
-    // Encode the transferData object as a URL-encoded string
-    const requestBody = new URLSearchParams();
-    for (const key in transferData) {
-        if (transferData.hasOwnProperty(key)) {
-            requestBody.append(key, transferData[key]);
-        }
+export async function transferToBankAccount(amount, currency, destinationBankAccountId) {
+    const stripe = require('stripe')(STRIPE_SECRET_KEY);
+    console.log("stripe: " + stripe);
+    try {
+        const transfer = await stripe.transfers.create({
+            amount: amount,
+            currency: currency,
+            destination: destinationBankAccountId,
+        });
+        return transfer;
+    } catch (error) {
+        console.error('Error transferring funds to bank account:', error);
+        throw error;
     }
-
-    // Set up the headers for the request
-    const headers = {
-        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded', // Set content type to URL-encoded form data
-    };
-
-    // Send the transfer request to the Stripe API
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: requestBody.toString(), // Convert transferData to URL-encoded string
-    })
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(error => console.error('Error:', error));
 }
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// import { fetch } from 'wix-fetch';
-
-// export function charge(token, cart) {
-
-//     //Go to stripe.com to create a test key and replace the one in the example
-// const apiKey = "apikeyhere";
-
-//     return fetch("https://api.stripe.com/v1/charges", {
-//         method: 'post',
-//         headers: {
-//             'Accept': 'application/json',
-//             'Content-Type': "application/x-www-form-urlencoded",
-//             'Authorization': "Bearer " + apiKey
-//         },
-//         body: encodeBody(token, cart)
-
-//     })
-//         .then((httpResponse) => {
-//             if (httpResponse.ok) {
-//                 return httpResponse.json();
-//             }
-//         });
-
-// }
-// function encodeBodyToken(token, cart) {
-
-//     let encoded = "";
-
-//     for (let [k, v] of Object.entries(cart)) {
-//         encoded = encoded.concat(k, "=", encodeURI(v), "&");
-//     }
-//     encoded = encoded.concat("source=", encodeURI(token));
-//     console.log("Encoded" + encoded);
-//     return encoded;
-// }

@@ -17,8 +17,9 @@ $w("#payButton").onClick((event) => {
 
 $w("#button1").onClick(() => {
     console.log("clicked");
-    Pay.payIBAN("BG45INTF40012090790288");
-    console.log("after payIBAN");
+    Pay.transferToBankAccount(150, 'bgn', 'BG45INTF40012090790288')
+        .then(transfer => console.log('Transfer successful:', transfer))
+        .catch(error => console.error('Transfer failed:', error));
 });
 
 //
