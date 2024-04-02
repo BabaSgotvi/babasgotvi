@@ -25,12 +25,10 @@ $w("#payButton").onClick((event) => {
 });
 
 $w("#button1").onClick(() => {
-    console.log("clicked");
+    $w("#button1").label = "Processing...";
+    $w("#button1").disable();
     payNow();
     console.log("payNow has been executed");
-    // Pay.transferToBankAccount(150, 'bgn', 'BG45INTF40012090790288')
-    //     .then(transfer => console.log('Transfer successful:', transfer))
-    //     .catch(error => console.error('Transfer failed:', error));
 });
 
 
@@ -45,18 +43,12 @@ export function payNow() {
             charge(token, payment)
                 .then((response) => {
                     if (response.chargeId) {
+                        console.log("Payment Successful");
                         console.log("Charge ID: " + response.chargeId);
-                        // $w('#response').text = response.chargeId;
-                        // $w('#lblResponse').text = "Charge ID (response from Stripe):";
-                        // $w('#btnClearPaid').label = "CLEAR PAID";
-                        // $w('#btnClearPaid').show();
                     }
                     else {
-                        // $w('#response').text = response.error;
-                        // $w('#lblResponse').text = "Processing error (from Stripe):";
                         console.log(response.error);
                     }
-                    // $w('#response').show();
                 });
         });
 }
