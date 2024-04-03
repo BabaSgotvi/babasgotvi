@@ -36,10 +36,16 @@ $w("#PayNowButton").onClick(() => {
 
 
 export function payNow() {
-    stripeProxy.createCart(ids, amounts);
+    // stripeProxy.createCart(ids, amounts);
+    let cart =
+    {
+        "amount": 100,
+        "currency": "BGN",
+        "description": "test charge"
+    };
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            stripeProxy.charge(token)
+            stripeProxy.charge(token, cart)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
