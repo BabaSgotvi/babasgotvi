@@ -1,15 +1,10 @@
-// @ts-ignore
-// @ts-ignore
-import * as Pay from 'backend/Pay';
-// @ts-ignore
 import wixPayFrontend from 'wix-pay-frontend';
-// @ts-ignore
 import { local, session, memory } from "wix-storage-frontend";
-// @ts-ignore
 import { STRIPE_PUBLISHABLE_KEY } from 'public/PayKeys';
-// @ts-ignore
 import * as stripeProxy from 'backend/stripeProxy';
 import * as stripeAPI from "public/stripeAPI";
+import wixLocation from 'wix-location';
+//
 let ids = [];
 let amounts = [];
 function retrieveCart() {
@@ -21,14 +16,17 @@ function displayCart() {
 }
 $w.onReady(async function () {
     console.log("script is running");
+    $w("#errorMessage").collapse();
     retrieveCart();
     displayCart();
 });
 
 $w("#PayNowButton").onClick(() => {
-    $w("#PayNowButton").label = "Processing...";
+    $w("#errorMessage").collapse();
+    $w("#PayNowButton").label = "Обработване...";
     $w("#PayNowButton").disable();
     payNow();
+
     console.log("payNow has been executed");
 });
 
@@ -50,8 +48,14 @@ export function payNow() {
                     if (response.chargeId) {
                         console.log("Payment Successful");
                         console.log("Charge ID: " + response.chargeId);
+                        $w("#PayNowButton").label = "Готово!";
+                        wixLocation.to("/thankyou");
                     }
                     else {
+
+                        $w("#PayNowButton").label = "Плати";
+                        $w("#PayNowButton").enable();
+                        $w("#errorMessage").expand();
                         console.log(response.error);
                     }
                 });
