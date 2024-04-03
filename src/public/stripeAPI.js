@@ -1,11 +1,11 @@
 import { fetch } from 'wix-fetch';
-const apiKey = "pk_live_51OLgRxCW4moslVDKuOA45Tpc0cQicgRqM8kr3lrCMqtFkeIJAcGs1TJjaNvXj9UXeM1hvkAIqrMUh9Y0ZS4FHs8700gdx0mKmw"; // (public key)
+import { STRIPE_PUBLISHABLE_KEY } from './PayKeys';
 export async function createToken(card) {
     const response = await fetch("https://api.stripe.com/v1/tokens", {
         method: 'post',
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Bearer " + apiKey
+            "Authorization": "Bearer " + STRIPE_PUBLISHABLE_KEY
         },
         body: card
     });

@@ -1,11 +1,33 @@
 import { fetch } from 'wix-fetch';
-import { STRIPE_SECRET_KEY } from 'backend/PayKeys';
+import { STRIPE_SECRET_KEY } from 'public/PayKeys';
+import wixData from 'wix-data';
 
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
+let cart;
 
-export async function charge(token, payment, userId) {
+export async function createCart(ids, amounts) {
+    // let totalPrice = 0;
+    // let description = "";
+    // for (i = 0; i < ids.length; i++) {
+    //     let item = await getItemFromDatabase(ids[i]);
+    //     totalPrice += parseFloat(item.price) * amounts[i];
+    //     description += item.title + "x" + amounts[i] + ", ";
+    // }
 
-    const cart = payment;
+    // cart = {
+    //     "amount": totalPrice * 100, // converts to cents
+    //     "currency": "BGN",
+    //     "description": "Поръчка: " + description,
+    //     // "receipt_email": "
+    // }
+    cart =
+    {
+        "amount": 100,
+        "currency": "BGN",
+        "description": "Test charge",
+    }
+};
+export async function charge(token) {
     const response = await fetch("https://api.stripe.com/v1/charges", {
         method: 'post',
         headers: {
@@ -35,39 +57,23 @@ function encodeBody(token, cart) {
     return encoded;
 }
 
-export async function testCharge() {
+async function getItemFromDatabase(id) {
+    try {
+        // Query the 'FoodList' collection to find the item with the specified ID
+        const queryResult = await wixData.query('FoodList')
+            .eq('_id', id) // Filter by the ID
+            .find();
 
-    /*
-    // This function performs a simple integration test
-    // and is only used for testing purposes.
-    // For more details, see: https://stripe.com/docs/development
-	
-    // Call this function on any page using the following snippet:
-	
-    // import statement at beginning of file
-    import {testCharge} from 'backend/stripeProxy';
-
-    // put this in the page's onReady() function
-    testCharge()
-        .then((response) => {
-            console.log(response);
-        });
-    */
-
-    let cart = {
-        amount: '999',
-        currency: 'usd',
-        source: 'tok_visa',
-        receipt_email: 'your@emailaddress.com'
-    };
-    const response = await fetch("https://api.stripe.com/v1/charges", {
-        method: 'post',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': "application/x-www-form-urlencoded",
-            'Authorization': "Bearer " + apiKey
-        },
-        body: encodeBody('tok_visa', cart)
-    });
-    return await response.json();
+        // Check if any item was found
+        if (queryResult.items.length > 0) {
+            // Return the first item found (assuming IDs are unique)
+            return queryResult.items[0];
+        } else {
+            throw new Error(`Item with ID ${id} not found in the database`);
+        }
+    } catch (error) {
+        // Handle errors
+        console.error('Error retrieving item from the database:', error);
+        throw error; // Re-throw the error to be caught by the calling function
+    }
 }

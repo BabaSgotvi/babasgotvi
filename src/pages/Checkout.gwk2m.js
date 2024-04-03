@@ -1,46 +1,45 @@
 // @ts-ignore
-import * as Pay from 'backend/Pay';
-import wixPayFrontend from 'wix-pay-frontend';
-import { local, session, memory } from "wix-storage-frontend";
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_51OLgRxCW4moslVDKuOA45Tpc0cQicgRqM8kr3lrCMqtFkeIJAcGs1TJjaNvXj9UXeM1hvkAIqrMUh9Y0ZS4FHs8700gdx0mKmw';
 // @ts-ignore
-import { charge } from 'backend/stripeProxy';
-import { createToken, encodeCard } from "public/stripeAPI.js";
+import * as Pay from 'backend/Pay';
+// @ts-ignore
+import wixPayFrontend from 'wix-pay-frontend';
+// @ts-ignore
+import { local, session, memory } from "wix-storage-frontend";
+// @ts-ignore
+import { STRIPE_PUBLISHABLE_KEY } from 'public/PayKeys';
+// @ts-ignore
+import * as stripeProxy from 'backend/stripeProxy';
+import * as stripeAPI from "public/stripeAPI";
 let ids = [];
 let amounts = [];
-retrieveCart();
-$w.onReady(async function () {
-    console.log("script is running");
-});
-
 function retrieveCart() {
     ids = JSON.parse(session.getItem("CheckoutIds"));
     amounts = JSON.parse(session.getItem("CheckoutAmounts"));
 }
-$w("#payButton").onClick((event) => {
-    Pay.createPaymentObj(ids, amounts).then(payment => {
-        wixPayFrontend.startPayment(payment.id).then(() => {
-        });
-    });
+function displayCart() {
+
+}
+$w.onReady(async function () {
+    console.log("script is running");
+    retrieveCart();
+    displayCart();
 });
 
-$w("#button1").onClick(() => {
-    $w("#button1").label = "Processing...";
-    $w("#button1").disable();
+$w("#PayNowButton").onClick(() => {
+    $w("#PayNowButton").label = "Processing...";
+    $w("#PayNowButton").disable();
     payNow();
     console.log("payNow has been executed");
 });
 
 
+
+
 export function payNow() {
-    let payment = {
-        "amount": ($w("#amount").value * 100),
-        "currency": "BGN",
-        "description": $w("#description").value
-    }
-    createToken(encodeCard(createCard()))
+    stripeProxy.createCart(ids, amounts);
+    stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            charge(token, payment)
+            stripeProxy.charge(token)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
@@ -55,13 +54,24 @@ export function payNow() {
 
 
 function createCard() {
+    let { month, year } = splitExpirationDate($w("#expiration").value);
     return {
+        // @ts-ignore
         "name": $w("#cardholder").value,
+        // @ts-ignore
         "number": $w("#cardnum").value,
+        // @ts-ignore
         "cvc": $w("#cvc").value,
-        "exp_year": $w("#year").value,
-        "exp_month": $w("#month").value
+        // @ts-ignore
+        "exp_year": year,
+        // @ts-ignore
+        "exp_month": month
     };
+}
+
+function splitExpirationDate(date) {
+    const [month, year] = date.split('/');
+    return { month, year };
 }
 
 //
