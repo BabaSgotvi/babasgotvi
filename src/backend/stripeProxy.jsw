@@ -3,7 +3,11 @@ import { STRIPE_SECRET_KEY } from 'public/PayKeys';
 import wixData from 'wix-data';
 
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
-let cart;
+let cart = {
+    "amount": 100,
+    "currency": "BGN",
+    "description": "Test charge",
+};
 
 export async function createCart(ids, amounts) {
     // let totalPrice = 0;
