@@ -12,8 +12,12 @@ function retrieveCart() {
     amounts = JSON.parse(session.getItem("CheckoutAmounts"));
 }
 function displayCart() {
-
+    let i = 0;
+    ids.forEach(id => {
+        console.log(id + " x" + amounts[i++] + "\n");
+    });
 }
+
 $w.onReady(async function () {
     console.log("script is running");
     $w("#errorMessage").collapse();
@@ -43,7 +47,7 @@ export function payNow() {
     };
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            stripeProxy.charge(token, cart)
+            stripeProxy.charge(token, ids, amounts)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
