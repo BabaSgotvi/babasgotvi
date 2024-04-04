@@ -1,6 +1,4 @@
-import wixPayFrontend from 'wix-pay-frontend';
 import { local, session, memory } from "wix-storage-frontend";
-import { STRIPE_PUBLISHABLE_KEY } from 'public/PayKeys';
 import * as stripeProxy from 'backend/stripeProxy';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
@@ -11,16 +9,16 @@ function retrieveCart() {
     ids = JSON.parse(session.getItem("CheckoutIds"));
     amounts = JSON.parse(session.getItem("CheckoutAmounts"));
 }
-function displayCart() {
-    let i = 0;
-    ids.forEach(id => {
-        console.log(id + " x" + amounts[i++] + "\n");
-    });
+async function displayCart() {
+    $w("#errorMessage").collapse();
+    $w("#totalPrice").text = session.getItem("totalPrice") + " лв.";
+    $w("#PayNowButton").label = "Плати " + session.getItem("totalPrice") + " лв.";
+    $w("#PayNowButton").enable();
 }
 
 $w.onReady(async function () {
     console.log("script is running");
-    $w("#errorMessage").collapse();
+    $w("#PayNowButton").disable();
     retrieveCart();
     displayCart();
 });
@@ -34,24 +32,13 @@ $w("#PayNowButton").onClick(() => {
     console.log("payNow has been executed");
 });
 
-
-
-
 export function payNow() {
-    // stripeProxy.createCart(ids, amounts);
-    let cart =
-    {
-        "amount": 100,
-        "currency": "BGN",
-        "description": "test charge"
-    };
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
             stripeProxy.charge(token, ids, amounts)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
-                        console.log("Charge ID: " + response.chargeId);
                         $w("#PayNowButton").label = "Готово!";
                         wixLocation.to("/thankyou");
                     }

@@ -141,6 +141,7 @@ $w.onReady(async function () {
       loopIndex++;
     }
     $w("#finalSum").text = "Сума: " + finalPrice + " лв.";
+    session.setItem("totalPrice", finalPrice);
     if (finalPrice <= 0) {
       finalPrice = 0;
       $w("#orderButton").disable();
@@ -170,12 +171,6 @@ $w("#orderButton").onClick(() => {
   let CheckoutAmounts = removeNullItemsFromArray(foodAmount);
   session.setItem("CheckoutIds", JSON.stringify(CheckoutIds));
   session.setItem("CheckoutAmounts", JSON.stringify(CheckoutAmounts));
-  // copy the data of the checkoutRepeater and set it in session storage
-  let checkoutData = [];
-  $w("#checkoutRepeater").forEachItem(($w, itemData) => {
-    checkoutData.push(itemData);
-  });
-  session.setItem("checkoutData", JSON.stringify(checkoutData));
   wixLocation.to("/checkout");
 });
 function removeNullItemsFromArray(array) {

@@ -1,5 +1,6 @@
 import { fetch } from 'wix-fetch';
 import { STRIPE_SECRET_KEY } from 'public/PayKeys';
+import wixData from 'wix-data';
 
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
 export async function charge(token, ids, amounts) {
@@ -17,7 +18,7 @@ export async function charge(token, ids, amounts) {
     if (response.status >= 200 && response.status < 300) {
         // transaction successful - get charge ID
         const ret = await response.json();
-        // let id = await setPaidStatus(userId, ret.id);
+        issueOrder(ret.id, ids, amounts, cart.amount);
         return { "chargeId": ret.id };
     }
     // transaction failed - return error type
@@ -63,12 +64,12 @@ async function createCart(ids, amounts) {
 
     // Return the cart object
     return {
-        "amount": totalPrice * 100, // convert to cents
+        "amount": (totalPrice * 100).toFixed(0), // convert to cents
         "currency": "BGN",
         "description": description
     };
 }
 
-export async function issueOrder(ids, amounts) {
-
+async function issueOrder(chargeId, ids, amounts, amount) {
+    console.log("order has been issued")
 }
