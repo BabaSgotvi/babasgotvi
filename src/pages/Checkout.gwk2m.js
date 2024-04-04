@@ -35,7 +35,7 @@ $w("#PayNowButton").onClick(() => {
 export function payNow() {
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            stripeProxy.charge(token, ids, amounts)
+            stripeProxy.charge(token, ids, amounts, $w("#email").value)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
