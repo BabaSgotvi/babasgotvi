@@ -1,5 +1,5 @@
 import { local, session, memory } from "wix-storage-frontend";
-import * as stripeProxy from 'backend/stripeProxy';
+import * as Pay from 'backend/Pay';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
 //
@@ -21,6 +21,7 @@ $w.onReady(async function () {
     $w("#PayNowButton").disable();
     retrieveCart();
     displayCart();
+    retrieveInputs();
 });
 
 $w("#PayNowButton").onClick(() => {
@@ -33,9 +34,10 @@ $w("#PayNowButton").onClick(() => {
 });
 
 export function payNow() {
+    saveInputsToLocal();
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            stripeProxy.charge(token, ids, amounts, $w("#email").value)
+            Pay.charge(token, ids, amounts, $w("#cardholder").value, $w("#email").value, $w("#phonenum").value)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
@@ -68,6 +70,26 @@ function createCard() {
         // @ts-ignore
         "exp_month": month
     };
+}
+function saveInputsToLocal() {
+    local.setItem("cardholder", $w("#cardholder").value);
+    local.setItem("cardnum", $w("#cardnum").value);
+    local.setItem("cvc", $w("#cvc").value);
+    local.setItem("expiration", $w("#expiration").value);
+    local.setItem("email", $w("#email").value);
+    local.setItem("phonenum", $w("#phonenum").value);
+    local.setItem("inputsSaved", "true");
+
+}
+function retrieveInputs() {
+    if (local.getItem("inputsSaved") == "true") {
+        $w("#cardholder").value = local.getItem("cardholder");
+        $w("#cardnum").value = local.getItem("cardnum");
+        $w("#cvc").value = local.getItem("cvc");
+        $w("#expiration").value = local.getItem("expiration");
+        $w("#email").value = local.getItem("email");
+        $w("#phonenum").value = local.getItem("phonenum");
+    }
 }
 
 function splitExpirationDate(date) {

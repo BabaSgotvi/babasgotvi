@@ -5,23 +5,23 @@ import wixData from 'wix-data';
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
 const stripeApiUrl = "https://api.stripe.com/v1";
 
-export async function charge(token, ids, amounts, email) {
+export async function charge(token, ids, amounts, name, email, phone) {
     console.log("Charge has been called");
-    const customerId = await createOrRetrieveCustomer(email);
-    const cart = await createCart(ids, amounts, email, customerId);
-    console.log(cart);
+    const customerId = await createOrRetrieveCustomer(name, email, phone);
+    const chargeObj = await createChargeObj(ids, amounts, email, customerId);
+    console.log(chargeObj);
     const response = await fetch(`${stripeApiUrl}/charges`, {
         method: 'post',
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
             "Authorization": "Bearer " + apiKey
         },
-        body: encodeBody(token, cart)
+        body: encodeBody(token, chargeObj)
     });
     if (response.status >= 200 && response.status < 300) {
         // transaction successful - get charge ID
         const ret = await response.json();
-        issueOrder(ret.id, ids, amounts, cart.amount);
+        issueOrder(ret.id, ids, amounts, chargeObj.amount);
         return { "chargeId": ret.id };
     }
     // transaction failed - return error type
@@ -30,7 +30,7 @@ export async function charge(token, ids, amounts, email) {
     return { "error": err };
 }
 
-async function createOrRetrieveCustomer(email) {
+async function createOrRetrieveCustomer(name, email, phone) {
     // Check if the customer exists
     const existingCustomerResponse = await fetch(`${stripeApiUrl}/customers?email=${email}`, {
         method: 'get',
@@ -52,7 +52,7 @@ async function createOrRetrieveCustomer(email) {
             "Content-Type": "application/x-www-form-urlencoded",
             "Authorization": "Bearer " + apiKey
         },
-        body: `email=${email}`
+        body: `name=${name}&email=${email}&phone=${phone}`
     });
     if (newCustomerResponse.status === 200) {
         const newCustomerData = await newCustomerResponse.json();
@@ -63,18 +63,18 @@ async function createOrRetrieveCustomer(email) {
     return null;
 }
 
-function encodeBody(token, cart) {
+function encodeBody(token, chargeObj) {
     let encoded = "";
-    for (let [k, v] of Object.entries(cart)) {
+    for (let [k, v] of Object.entries(chargeObj)) {
         encoded = encoded.concat(k, "=", encodeURI(v), "&");
     }
     encoded = encoded.concat("source=", encodeURI(token));
     return encoded;
 }
 
-async function createCart(ids, amounts, email, customerId) {
+async function createChargeObj(ids, amounts, email, customerId) {
     let totalPrice = 0;
-    let description = "food order: ";
+    let description = "поръчка: ";
     // Create an array to store all the promises returned by the wixData queries
     let promises = [];
 
@@ -98,16 +98,19 @@ async function createCart(ids, amounts, email, customerId) {
     // Round totalPrice to 2 decimal places
     totalPrice = totalPrice.toFixed(2);
 
-    // Return the cart object
+    // Return the chargeObj object
     return {
         "amount": (totalPrice * 100).toFixed(0), // convert to cents
         "currency": "BGN",
         "description": description,
         "receipt_email": email,
-        "customer": customerId // Include the customer ID in the cart object
+        // "customer": customerId, // gives errors at the moment
     };
 }
 
 async function issueOrder(chargeId, ids, amounts, amount) {
     console.log("order has been issued")
+}
+async function issuePayout(providerId) {
+    // find IBAN from providerId
 }
