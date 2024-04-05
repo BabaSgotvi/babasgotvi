@@ -50,7 +50,7 @@ async function createCart(ids, amounts, email) {
                 .eq("_id", id)
                 .find()
                 .then((results) => {
-                    totalPrice += parseFloat(results.items[0].price) * amounts[i] / 100;
+                    totalPrice += parseFloat(results.items[0].price) * amounts[i];
                     description += results.items[0].title + " x" + amounts[i] + ", ";
                 })
         );
