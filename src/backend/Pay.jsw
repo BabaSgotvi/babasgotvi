@@ -5,10 +5,10 @@ import wixData from 'wix-data';
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
 const stripeApiUrl = "https://api.stripe.com/v1";
 
-export async function charge(token, ids, amounts, name, email, phone) {
+export async function charge(token, orderObj) {
     console.log("Charge has been called");
-    const customerId = await createOrRetrieveCustomer(name, email, phone);
-    const chargeObj = await createChargeObj(ids, amounts, email, customerId);
+    const customerId = await createOrRetrieveCustomer(orderObj);
+    const chargeObj = await createChargeObj(orderObj);
     console.log(chargeObj);
     const response = await fetch(`${stripeApiUrl}/charges`, {
         method: 'post',
@@ -21,7 +21,7 @@ export async function charge(token, ids, amounts, name, email, phone) {
     if (response.status >= 200 && response.status < 300) {
         // transaction successful - get charge ID
         const ret = await response.json();
-        issueOrder(ret.id, ids, amounts, chargeObj.amount);
+        issueOrder(ret.id, orderObj, chargeObj);
         return { "chargeId": ret.id };
     }
     // transaction failed - return error type
@@ -30,9 +30,9 @@ export async function charge(token, ids, amounts, name, email, phone) {
     return { "error": err };
 }
 
-async function createOrRetrieveCustomer(name, email, phone) {
+async function createOrRetrieveCustomer(orderObj) {
     // Check if the customer exists
-    const existingCustomerResponse = await fetch(`${stripeApiUrl}/customers?email=${email}`, {
+    const existingCustomerResponse = await fetch(`${stripeApiUrl}/customers?email=${orderObj.email}`, {
         method: 'get',
         headers: {
             "Authorization": "Bearer " + apiKey
@@ -52,7 +52,7 @@ async function createOrRetrieveCustomer(name, email, phone) {
             "Content-Type": "application/x-www-form-urlencoded",
             "Authorization": "Bearer " + apiKey
         },
-        body: `name=${name}&email=${email}&phone=${phone}`
+        body: `name=${orderObj.name}&email=${orderObj.email}&phone=${orderObj.phone}`
     });
     if (newCustomerResponse.status === 200) {
         const newCustomerData = await newCustomerResponse.json();
@@ -72,22 +72,22 @@ function encodeBody(token, chargeObj) {
     return encoded;
 }
 
-async function createChargeObj(ids, amounts, email, customerId) {
+async function createChargeObj(orderObj) {
     let totalPrice = 0;
     let description = "поръчка: ";
     // Create an array to store all the promises returned by the wixData queries
     let promises = [];
 
     // Iterate over the IDs and amounts
-    ids.forEach((id, i) => {
+    orderObj.ids.forEach((id, i) => {
         // Push each query promise to the array
         promises.push(
             wixData.query("FoodList")
                 .eq("_id", id)
                 .find()
                 .then((results) => {
-                    totalPrice += parseFloat(results.items[0].price) * amounts[i];
-                    description += results.items[0].title + " x" + amounts[i] + ", ";
+                    totalPrice += parseFloat(results.items[0].price) * orderObj.amounts[i];
+                    description += results.items[0].title + " x" + orderObj.amounts[i] + ", ";
                 })
         );
     });
@@ -103,14 +103,54 @@ async function createChargeObj(ids, amounts, email, customerId) {
         "amount": (totalPrice * 100).toFixed(0), // convert to cents
         "currency": "BGN",
         "description": description,
-        "receipt_email": email,
+        "receipt_email": orderObj.email,
         // "customer": customerId, // gives errors at the moment
     };
 }
 
-async function issueOrder(chargeId, ids, amounts, amount) {
-    console.log("order has been issued")
+async function issueOrder(chargeId, orderObj, chargeObj) {
+    const orderItem = {
+        title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
+        chargeId: chargeId,
+        ids: orderObj.ids,
+        amounts: orderObj.amounts,
+        address1: orderObj.address1,
+        address2: orderObj.address2,
+        instructions: orderObj.instructions,
+        date: orderObj.date,
+        time: orderObj.time,
+        providerId: orderObj.providerId,
+        price: chargeObj.amount // in cents
+    };
+
+    try {
+        const result = await wixData.insert("UpcomingOrders", orderItem);
+        console.log("Order has been created:", result);
+        issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
+    } catch (error) {
+        console.error("Failed to create order:", error);
+    }
 }
-async function issuePayout(providerId) {
-    // find IBAN from providerId
+async function issuePayout(providerId, amount) {
+    const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
+    const iban = provider.items[0].iban;
+    console.log("IBAN: " + iban + "\n Amount in cents: " + amount);
+    const response = await fetch(`${stripeApiUrl}/payouts`, {
+        method: 'post',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Bearer " + apiKey
+        },
+        // body: `amount=${amount}&currency=BGN&destination=${iban}`
+        body: `amount=${amount}&currency=BGN`
+    });
+    if (response.status >= 200 && response.status < 300) {
+        // payout successful
+        const ret = await response.json();
+        console.log("Payout successful:", ret);
+    } else {
+        // payout failed
+        const res = await response.json();
+        console.error("Payout failed:", res.error);
+    }
 }

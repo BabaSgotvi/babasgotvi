@@ -171,6 +171,7 @@ $w("#orderButton").onClick(() => {
   let CheckoutAmounts = removeNullItemsFromArray(foodAmount);
   session.setItem("CheckoutIds", JSON.stringify(CheckoutIds));
   session.setItem("CheckoutAmounts", JSON.stringify(CheckoutAmounts));
+  session.setItem("providerId", providerId);
   wixLocation.to("/checkout");
 });
 function removeNullItemsFromArray(array) {
@@ -185,42 +186,3 @@ function removeNullItemsFromArray(array) {
 //
 /// TODO: ADD FOOD FILTERING BASED ON AVAILABLE DAYS
 //
-
-
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// import { charge } from 'backend/stripeProxy';
-
-// console.log("1");
-// $w("#html1").postMessage("");
-// console.log("2");
-// $w("#html1").onMessage((event) => {
-//   console.log("3");
-//   let token = JSON.parse(event.data);
-//   console.log("4");
-//   console.log(token);
-//   console.log("5");
-//   charge(token.id, getCart())
-//     .then((chargeResponse) => {
-//       console.log("6");
-//       console.log("Charge ID: " + chargeResponse.id);
-
-//     });
-// });
-
-// function getCart() {
-//   return {
-//     "amount": 100,
-//     "currency": "BGN",
-//     "description": "whatever"
-//   };
-// }3

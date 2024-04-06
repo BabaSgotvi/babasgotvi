@@ -34,10 +34,24 @@ $w("#PayNowButton").onClick(() => {
 });
 
 export function payNow() {
+    const orderObj =
+    {
+        "ids": ids,
+        "amounts": amounts,
+        "cardholder": $w("#cardholder").value,
+        "email": $w("#email").value,
+        "phonenum": $w("#phonenum").value,
+        "providerId": session.getItem("providerId"),
+        "address1": $w("#address1").value,
+        "address2": $w("#address2").value,
+        "instructions": $w("#instructions").value,
+        "date": $w("#date").value,
+        "time": $w("#time").value,
+    }
     saveInputsToLocal();
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
-            Pay.charge(token, ids, amounts, $w("#cardholder").value, $w("#email").value, $w("#phonenum").value)
+            Pay.charge(token, orderObj)
                 .then((response) => {
                     if (response.chargeId) {
                         console.log("Payment Successful");
