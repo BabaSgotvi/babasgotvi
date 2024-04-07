@@ -1,5 +1,5 @@
 import { fetch } from 'wix-fetch';
-import { STRIPE_SECRET_KEY } from 'public/PayKeys';
+import { STRIPE_SECRET_KEY } from './PayKeys';
 import wixData from 'wix-data';
 
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
