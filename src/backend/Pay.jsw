@@ -1,6 +1,7 @@
 import { fetch } from 'wix-fetch';
 import { STRIPE_SECRET_KEY } from './PayKeys';
 import wixData from 'wix-data';
+import * as Orders from './Orders';
 
 const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
 const stripeApiUrl = "https://api.stripe.com/v1";
@@ -21,7 +22,7 @@ export async function charge(token, orderObj) {
     if (response.status >= 200 && response.status < 300) {
         // transaction successful - get charge ID
         const ret = await response.json();
-        issueOrder(ret.id, orderObj, chargeObj);
+        Orders.issueOrder(ret.id, orderObj, chargeObj);
         return { "chargeId": ret.id };
     }
     // transaction failed - return error type
@@ -107,31 +108,7 @@ async function createChargeObj(orderObj) {
         // "customer": customerId, // gives errors at the moment
     };
 }
-
-async function issueOrder(chargeId, orderObj, chargeObj) {
-    const orderItem = {
-        title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
-        chargeId: chargeId,
-        ids: orderObj.ids,
-        amounts: orderObj.amounts,
-        address1: orderObj.address1,
-        address2: orderObj.address2,
-        instructions: orderObj.instructions,
-        date: orderObj.date,
-        time: orderObj.time,
-        providerId: orderObj.providerId,
-        price: chargeObj.amount // in cents
-    };
-
-    try {
-        const result = await wixData.insert("UpcomingOrders", orderItem);
-        console.log("Order has been created:", result);
-        issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
-    } catch (error) {
-        console.error("Failed to create order:", error);
-    }
-}
-async function issuePayout(providerId, amount) {
+export async function issuePayout(providerId, amount) {
     const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
     const iban = provider.items[0].iban;
     console.log("IBAN: " + iban + "\n Amount in cents: " + amount);

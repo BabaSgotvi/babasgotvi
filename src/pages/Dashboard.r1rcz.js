@@ -237,7 +237,7 @@ $w("#maxOrdersPerDayInput").onFocus(() => {
 async function saveMenuSettings() {
     let changed = account;
     changed.maxOrdersPerDay = parseInt($w("#maxOrdersPerDayInput").value);
-    changed.cutOffOption = currentCutOffOption;
+    changed.orderCutoff = currentCutOffOption;
     await wixData.save("ProviderList", changed);
 };
 function retrieveData() {

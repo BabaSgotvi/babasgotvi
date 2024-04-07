@@ -2,6 +2,7 @@ import { local, session, memory } from "wix-storage-frontend";
 import * as Pay from 'backend/Pay';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
+import wixData from 'wix-data';
 //
 let ids = [];
 let amounts = [];
@@ -13,15 +14,19 @@ async function displayCart() {
     $w("#errorMessage").collapse();
     $w("#totalPrice").text = session.getItem("totalPrice") + " лв.";
     $w("#PayNowButton").label = "Плати " + session.getItem("totalPrice") + " лв.";
-    $w("#PayNowButton").enable();
 }
 
 $w.onReady(async function () {
     console.log("script is running");
-    $w("#PayNowButton").disable();
     retrieveCart();
     displayCart();
     retrieveInputs();
+    $w("#date").disable();
+    // $w("#date").label = session.getItem("selectedDate");
+    // $w("#date").value = "test label";
+    const hours = await retrieveHours(session.getItem("providerId"));
+    console.log(hours);
+    $w("#time").options = hours;
 });
 
 $w("#PayNowButton").onClick(() => {
@@ -122,3 +127,16 @@ function splitExpirationDate(date) {
 //
 /// TODO: ADD CANCELATION
 //
+
+async function retrieveHours(providerId) {
+    const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
+    console.log("provider: " + provider);
+    const availableHours = provider.items[0].availableHours;
+    // const availableHours = provider.items[0].title;
+    console.log("avHours: " + availableHours);
+    const availableHoursArray = availableHours.split(",");
+    console.log("array " + availableHoursArray);
+    return availableHoursArray.map(hour => ({
+        label: " ≈ " + hour, value: hour
+    }));
+}
