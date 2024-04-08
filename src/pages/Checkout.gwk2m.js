@@ -1,8 +1,11 @@
 import { local, session, memory } from "wix-storage-frontend";
+// @ts-ignore
 import * as Pay from 'backend/Pay';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
 import wixData from 'wix-data';
+import * as timeManager from 'public/timeManager';
+
 //
 let ids = [];
 let amounts = [];
@@ -21,24 +24,46 @@ $w.onReady(async function () {
     retrieveCart();
     displayCart();
     retrieveInputs();
+    // iterateFocus();
     $w("#date").disable();
-    // $w("#date").label = session.getItem("selectedDate");
-    // $w("#date").value = "test label";
+    $w("#date").value = timeManager.getDayOfWeek(session.getItem("selectedDay"), "BG", false) + " " + session.getItem("selectedDay");
     const hours = await retrieveHours(session.getItem("providerId"));
     console.log(hours);
     $w("#time").options = hours;
 });
+$w("#address1").onCustomValidation((value, reject) => {
+    let fullAddress = value;
 
+    function GetPropertyValue(obj1, dataToRetrieve) {
+        return dataToRetrieve
+            .split(".") // split string based on `.`
+            .reduce(function (o, k) {
+                return o && o[k]; // get inner property if `o` is defined else get `o` and return
+            }, obj1); // set initial value as object
+    }
+
+    let location = GetPropertyValue(fullAddress, "location");
+
+    if (location === undefined) {
+        reject("Please select an address option only.");
+    }
+});
 $w("#PayNowButton").onClick(() => {
-    $w("#errorMessage").collapse();
-    $w("#PayNowButton").label = "Обработване...";
-    $w("#PayNowButton").disable();
     payNow();
 
     console.log("payNow has been executed");
 });
 
 export function payNow() {
+    if (!allRequiredInputsAreValid()) {
+        $w("#errorMessage").expand();
+        $w("#errorMessage").text = "Моля попълнете всички задължителни полета (тези със звездичка *) правилно.";
+        return;
+    }
+    $w("#errorMessage").collapse();
+    $w("#PayNowButton").label = "Обработване...";
+    $w("#PayNowButton").disable();
+    saveInputsToLocal();
     const orderObj =
     {
         "ids": ids,
@@ -53,7 +78,6 @@ export function payNow() {
         "date": $w("#date").value,
         "time": $w("#time").value,
     }
-    saveInputsToLocal();
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
         .then((token) => {
             Pay.charge(token, orderObj)
@@ -91,6 +115,9 @@ function createCard() {
     };
 }
 function saveInputsToLocal() {
+    local.setItem("address1", JSON.stringify($w("#address1").value));
+    local.setItem("address2", $w("#address2").value);
+    local.setItem("instructions", $w("#instructions").value);
     local.setItem("cardholder", $w("#cardholder").value);
     local.setItem("cardnum", $w("#cardnum").value);
     local.setItem("cvc", $w("#cvc").value);
@@ -102,6 +129,9 @@ function saveInputsToLocal() {
 }
 function retrieveInputs() {
     if (local.getItem("inputsSaved") == "true") {
+        $w("#address1").value = JSON.parse(local.getItem("address1"));
+        $w("#address2").value = local.getItem("address2");
+        $w("#instructions").value = local.getItem("instructions");
         $w("#cardholder").value = local.getItem("cardholder");
         $w("#cardnum").value = local.getItem("cardnum");
         $w("#cvc").value = local.getItem("cvc");
@@ -116,23 +146,10 @@ function splitExpirationDate(date) {
     return { month, year };
 }
 
-//
-/// TODO: CHECKOUT
-//
-
-//
-/// TODO: ADD SEND ORDER TO CMS AND PROVIDER
-//
-
-//
-/// TODO: ADD CANCELATION
-//
-
 async function retrieveHours(providerId) {
     const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
     console.log("provider: " + provider);
     const availableHours = provider.items[0].availableHours;
-    // const availableHours = provider.items[0].title;
     console.log("avHours: " + availableHours);
     const availableHoursArray = availableHours.split(",");
     console.log("array " + availableHoursArray);
@@ -140,3 +157,99 @@ async function retrieveHours(providerId) {
         label: " ≈ " + hour, value: hour
     }));
 }
+
+$w("#returnToMenu").onClick(() => {
+    wixLocation.to('/menu?Id=' + session.getItem("providerId"));
+});
+
+
+function allRequiredInputsAreValid() {
+    // the function is SUPER BASIC at the moment. But I can't afford to spend time on a fancy soultion, so this will do fine for now.
+    return $w("#address1").valid && $w("#time").valid && $w("#cardholder").valid && $w("#cardnum").valid && $w("#cvc").valid && $w("#expiration").valid && $w("#email").valid && $w("#phonenum").valid;
+}
+// let done = 0;
+// function iterateFocus() {
+//     switch (done) {
+//         case 0:
+//             $w("#address1").focus();
+//             console.log("address1 focused");
+//             done++;
+//             break;
+//         case 1:
+//             $w("#address2").focus();
+//             console.log("address2 focused");
+//             done++;
+//             break;
+//         case 3:
+//             $w("#instructions").focus();
+//             console.log("instructions focused");
+//             done++;
+//             break;
+//         case 4:
+//             $w("#time").focus();
+//             console.log("time focused");
+//             done++;
+//             break;
+//         case 5:
+//             $w("#phonenum").focus();
+//             console.log("phonenum focused");
+//             done++;
+//             break;
+//         case 6:
+//             $w("#email").focus();
+//             console.log("email focused");
+//             done++;
+//             break;
+//         case 7:
+//             $w("#cardholder").focus();
+//             console.log("cardholder focused");
+//             done++;
+//             break;
+//         case 8:
+//             $w("#cardnum").focus();
+//             console.log("cardnum focused");
+//             done++;
+//             break;
+//         case 9:
+//             $w("#expiration").focus();
+//             console.log("expiration focused");
+//             done++;
+//             break;
+//         case 10:
+//             $w("#cvc").focus();
+//             console.log("cvc focused");
+//             done++;
+//             break;
+//     }
+// }
+
+// $w("#address1").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#address2").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#instructions").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#time").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#phonenum").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#email").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#cardholder").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#cardnum").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#expiration").onBlur(() => {
+//     iterateFocus();
+// });
+// $w("#cvc").onBlur(() => {
+//     iterateFocus();
+// });

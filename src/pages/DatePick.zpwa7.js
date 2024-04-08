@@ -15,7 +15,7 @@ let weeks = timeManager.splitDatesIntoWeeks(allDates);
 
 $w("#week1repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
-    $w("#dayText").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG");
+    $w("#dayText").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG", true);
     if (timeManager.isTommorow(allDates[dateIndex]))
         $w("#dayText").text = "Утре";
     $w("#dateText").text = formatDateString(allDates[dateIndex]);
@@ -32,7 +32,7 @@ $w("#week1repeater").forEachItem(($w) => {
 });
 $w("#week2repeater").forEachItem(($w) => {
     let localIndex = dateIndex;
-    $w("#dayText2").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG");
+    $w("#dayText2").text = timeManager.getDayOfWeek(allDates[dateIndex], "BG", true);
     if (timeManager.isTommorow(allDates[dateIndex]))
         $w("#dayText2").text = "Утре";
     $w("#dateText2").text = formatDateString(allDates[dateIndex]);

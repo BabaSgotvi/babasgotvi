@@ -3,14 +3,14 @@ import * as Pay from './Pay';
 
 export async function issueOrder(chargeId, orderObj, chargeObj) {
     const orderItem = {
-        title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
+        title: "предстояща поръчка за " + orderObj.date.toDateString() + ", " + orderObj.time,
         chargeId: chargeId,
         ids: orderObj.ids,
         amounts: orderObj.amounts,
         address1: orderObj.address1,
         address2: orderObj.address2,
         instructions: orderObj.instructions,
-        date: orderObj.date,
+        date: orderObj.date.toDateString(),
         time: orderObj.time,
         providerId: orderObj.providerId,
         price: chargeObj.amount // in cents

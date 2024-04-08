@@ -18,6 +18,7 @@ $w.onReady(async function () {
   $w("#foodlist").onReady(() => {
     RefreshProfile();
     listFood();
+    RefreshProfile();
   });
   function listFood() {
     $w("#menuRepeater").onItemReady(($w, itemData, index) => {
