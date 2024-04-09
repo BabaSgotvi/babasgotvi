@@ -1,16 +1,18 @@
 import wixData from 'wix-data';
 import * as Pay from './Pay';
 
-export async function issueOrder(chargeId, orderObj, chargeObj) {
+export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
+    console.log("issueOrder has been called");
     const orderItem = {
-        title: "предстояща поръчка за " + orderObj.date.toDateString() + ", " + orderObj.time,
-        chargeId: chargeId,
+        orderObj: orderObj,
+        chargeObj: chargeObj,
+        title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
         ids: orderObj.ids,
         amounts: orderObj.amounts,
         address1: orderObj.address1,
         address2: orderObj.address2,
         instructions: orderObj.instructions,
-        date: orderObj.date.toDateString(),
+        date: orderObj.date,
         time: orderObj.time,
         providerId: orderObj.providerId,
         price: chargeObj.amount // in cents
@@ -20,7 +22,13 @@ export async function issueOrder(chargeId, orderObj, chargeObj) {
         const result = await wixData.insert("UpcomingOrders", orderItem);
         console.log("Order has been created:", result);
         Pay.issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
+        return "success";
     } catch (error) {
         console.error("Failed to create order:", error);
+        return "failed";
     }
+}
+
+export async function deleteOrder(orderObj, chargeObj) {
+    // TODO: DELETE THE ORDER WHICH MATCHES ORDEROBJ AND CHARGEOBJ
 }

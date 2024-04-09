@@ -10,25 +10,35 @@ export async function charge(token, orderObj) {
     console.log("Charge has been called");
     const customerId = await createOrRetrieveCustomer(orderObj);
     const chargeObj = await createChargeObj(orderObj);
-    console.log(chargeObj);
-    const response = await fetch(`${stripeApiUrl}/charges`, {
-        method: 'post',
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Bearer " + apiKey
-        },
-        body: encodeBody(token, chargeObj)
-    });
-    if (response.status >= 200 && response.status < 300) {
-        // transaction successful - get charge ID
-        const ret = await response.json();
-        Orders.issueOrder(ret.id, orderObj, chargeObj);
-        return { "chargeId": ret.id };
+    let orderCreatedStatus = await Orders.issueOrder(orderObj, chargeObj);
+    if (orderCreatedStatus == "failed") {
+        return { "error": "Failed to create order" };
     }
-    // transaction failed - return error type
-    let res = await response.json();
-    let err = res.error.type;
-    return { "error": err };
+    else {
+        // charge
+        const response = await fetch(`${stripeApiUrl}/charges`, {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": "Bearer " + apiKey
+            },
+            body: encodeBody(token, chargeObj)
+        });
+        if (response.status >= 200 && response.status < 300) {
+            // transaction successful - get charge ID
+            // TODO: ADD THE CHARGEDID TO THE ORDER IN THE DATABASE
+            const ret = await response.json();
+            return { "chargeId": ret.id };
+        }
+        else {
+            // transaction failed - return error type
+            // TODO: !!!! REMOVE THE ORDER FROM THE DATABASE
+            Orders.deleteOrder(orderObj, chargeObj);
+            let res = await response.json();
+            let err = res.error.type;
+            return { "error": err };
+        }
+    }
 }
 
 async function createOrRetrieveCustomer(orderObj) {

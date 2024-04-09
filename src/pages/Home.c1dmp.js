@@ -8,6 +8,7 @@ let allDates;
 let deliveryDate;
 $w.onReady(function () {
     initializeElements();
+
 });
 $w("#providerList").onReady(() => {
     refreshListed();
@@ -36,6 +37,10 @@ function initializeElements() {
         })
     deliveryDate = allDates[0];
     $w("#deliveryDate").text = timeManager.dateDisplay(deliveryDate);
+
+    if (session.getItem("selectedDay") == null && session.getItem("selectedDay") == undefined) {
+        session.setItem("selectedDay", allDates[0]);
+    }
 }
 
 function countAvailableProviders(dateString) {

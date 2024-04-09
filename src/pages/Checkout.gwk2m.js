@@ -28,7 +28,6 @@ $w.onReady(async function () {
     $w("#date").disable();
     $w("#date").value = timeManager.getDayOfWeek(session.getItem("selectedDay"), "BG", false) + " " + session.getItem("selectedDay");
     const hours = await retrieveHours(session.getItem("providerId"));
-    console.log(hours);
     $w("#time").options = hours;
 });
 $w("#address1").onCustomValidation((value, reject) => {
@@ -50,8 +49,6 @@ $w("#address1").onCustomValidation((value, reject) => {
 });
 $w("#PayNowButton").onClick(() => {
     payNow();
-
-    console.log("payNow has been executed");
 });
 
 export function payNow() {
@@ -75,7 +72,7 @@ export function payNow() {
         "address1": $w("#address1").value,
         "address2": $w("#address2").value,
         "instructions": $w("#instructions").value,
-        "date": $w("#date").value,
+        "date": session.getItem("selectedDay"),
         "time": $w("#time").value,
     }
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))
@@ -88,9 +85,9 @@ export function payNow() {
                         wixLocation.to("/thankyou");
                     }
                     else {
-
-                        $w("#PayNowButton").label = "Плати";
+                        $w("#PayNowButton").label = "Плати " + session.getItem("totalPrice") + " лв.";
                         $w("#PayNowButton").enable();
+                        $w("#errorMessage").text = "Възникна проблем: " + response.error;
                         $w("#errorMessage").expand();
                         console.log(response.error);
                     }
@@ -148,11 +145,8 @@ function splitExpirationDate(date) {
 
 async function retrieveHours(providerId) {
     const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
-    console.log("provider: " + provider);
     const availableHours = provider.items[0].availableHours;
-    console.log("avHours: " + availableHours);
     const availableHoursArray = availableHours.split(",");
-    console.log("array " + availableHoursArray);
     return availableHoursArray.map(hour => ({
         label: " ≈ " + hour, value: hour
     }));
