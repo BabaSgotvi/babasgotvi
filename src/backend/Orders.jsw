@@ -4,6 +4,7 @@ import * as Pay from './Pay';
 export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
     console.log("issueOrder has been called");
     const orderItem = {
+        _id: createId(),
         orderObj: orderObj,
         chargeObj: chargeObj,
         title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
@@ -22,13 +23,31 @@ export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
         const result = await wixData.insert("UpcomingOrders", orderItem);
         console.log("Order has been created:", result);
         Pay.issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
-        return "success";
+        return { status: "success", id: orderItem._id };
     } catch (error) {
         console.error("Failed to create order:", error);
-        return "failed";
+        return { status: "failed", id: null };
     }
 }
 
-export async function deleteOrder(orderObj, chargeObj) {
-    // TODO: DELETE THE ORDER WHICH MATCHES ORDEROBJ AND CHARGEOBJ
+export async function deleteOrder(id) {
+    try {
+        await wixData.remove("UpcomingOrders", id);
+        console.log("Order has been deleted; id: " + id);
+        return { status: "success" };
+    } catch (error) {
+        console.error("Failed to delete order:", error);
+        return { status: "failed" };
+    }
+
+}
+
+function createId() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()_+-=<>?/.:,;[]{}';
+    let id = '';
+    for (let i = 0; i < 50; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        id += characters[randomIndex];
+    }
+    return id;
 }

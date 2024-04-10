@@ -5,3 +5,4 @@ node_modules/
 .wix/
 jsconfig.json
 PayKeys.js
+secrets.js

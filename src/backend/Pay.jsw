@@ -10,12 +10,13 @@ export async function charge(token, orderObj) {
     console.log("Charge has been called");
     const customerId = await createOrRetrieveCustomer(orderObj);
     const chargeObj = await createChargeObj(orderObj);
-    let orderCreatedStatus = await Orders.issueOrder(orderObj, chargeObj);
-    if (orderCreatedStatus == "failed") {
+    let orderInfo = await Orders.issueOrder(orderObj, chargeObj);
+    if (orderInfo.status == "failed") {
         return { "error": "Failed to create order" };
     }
     else {
         // charge
+        console.log("id: " + orderInfo.id);
         const response = await fetch(`${stripeApiUrl}/charges`, {
             method: 'post',
             headers: {
@@ -32,8 +33,7 @@ export async function charge(token, orderObj) {
         }
         else {
             // transaction failed - return error type
-            // TODO: !!!! REMOVE THE ORDER FROM THE DATABASE
-            Orders.deleteOrder(orderObj, chargeObj);
+            Orders.deleteOrder(orderInfo.id);
             let res = await response.json();
             let err = res.error.type;
             return { "error": err };
