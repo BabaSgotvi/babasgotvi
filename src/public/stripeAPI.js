@@ -1,7 +1,7 @@
 import { fetch } from 'wix-fetch';
+import { getSecret } from 'wix-secrets-backend';
 
-// const apiKey = 'pk_live_51OLgRxCW4moslVDKuOA45Tpc0cQicgRqM8kr3lrCMqtFkeIJAcGs1TJjaNvXj9UXeM1hvkAIqrMUh9Y0ZS4FHs8700gdx0mKmw'; // real public key
-const apiKey = 'pk_test_51OLgRxCW4moslVDKsNm2MV8bKLiCjO52eaZbT3Jb0J4TquqLWpw5e37PFYbMfR5nNx8EqIWhSrlH0bqdtJ7apom000fmYbhC0u'; // test public key
+const apiKey = await getSecret("TEST_STRIPE_PUBLISHABLE_KEY");
 
 export async function createToken(card) {
     const response = await fetch("https://api.stripe.com/v1/tokens", {

@@ -1,9 +1,9 @@
 import { fetch } from 'wix-fetch';
-import { STRIPE_SECRET_KEY } from './PayKeys';
 import wixData from 'wix-data';
 import * as Orders from './Orders';
+import { getSecret } from 'wix-secrets-backend';
 
-const apiKey = STRIPE_SECRET_KEY; // DO NOT SHARE THIS KEY
+const apiKey = await getSecret("TEST_STRIPE_SECRET_KEY");
 const stripeApiUrl = "https://api.stripe.com/v1";
 
 export async function charge(token, orderObj) {
@@ -141,3 +141,6 @@ export async function issuePayout(providerId, amount) {
         console.error("Payout failed:", res.error);
     }
 }
+
+
+

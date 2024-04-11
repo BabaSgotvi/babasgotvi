@@ -2,7 +2,7 @@ import { local, session, memory } from "wix-storage-frontend";
 import wixData from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
-import BalanceManager from 'backend/BalanceManager';
+
 let account;
 const sections = {
     orders: 1,
@@ -22,7 +22,6 @@ let currentCutOffOption = cutOffOptions.daybeforenoon;
 $w.onReady(async function () {
     await validateAccount();
     syncAvaiableDaysWithFood();
-    displayBalance();
     let doTour = local.getItem("tour");
     if (doTour == "doTour")
         Tour();
@@ -285,9 +284,7 @@ function syncAvaiableDaysWithFood() {
         });
 }
 function displayBalance() {
-    BalanceManager.getBalance(account._id, account.accountKey).then((balance) => {
-        $w("#moneyInBalance").text = balance + " лв.";
-    });
+
 }
 
 //
