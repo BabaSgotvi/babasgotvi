@@ -1,39 +1,48 @@
 import { getSecret } from 'wix-secrets-backend';
+import { fetch } from 'wix-fetch';
+export async function sendEmail(recipientEmail, subject, body) {
+    console.log("sendEmail() has been called");
+    const apiKey = await getSecret('TWILIO_SENDGRID_API_KEY');
+    const sendGridURL = 'https://api.sendgrid.com/v3/mail/send';
 
-const accountSid = getSecret("TEST_TWILIO_ACCOUNT_SID");
-const authToken = getSecret("TEST_TWILIO_AUTH_TOKEN");
-const twilioPhoneNumber = '+13344534393'; // +1 334 453 4393
-
-export async function sendSMSNotificationFETCH(phoneNumber, message) {
-    console.log("sendSMSNotification has been called");
-
-
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-
-    const headers = {
-        'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
-        'Content-Type': 'application/x-www-form-urlencoded',
+    const emailData = {
+        personalizations: [
+            {
+                to: [
+                    {
+                        email: recipientEmail,
+                    },
+                ],
+                subject: subject,
+            },
+        ],
+        from: {
+            email: 'babatigotvi@gmail.com', // Replace with sender's email
+        },
+        content: [
+            {
+                type: 'text/plain',
+                value: body,
+            },
+        ],
     };
 
-    const body = `To=${encodeURIComponent(phoneNumber)}&From=${encodeURIComponent(twilioPhoneNumber)}&Body=${encodeURIComponent(message)}`;
-
-    const response = await fetch(url, {
+    return fetch(sendGridURL, {
         method: 'POST',
-        headers: headers,
-        body: body
-    });
-
-    const responseData = await response.json();
-    console.log(responseData);
-}
-export function sendSMSNotificationMODULE(phoneNumber, message) {
-    const client = require('twilio')(accountSid, authToken);
-    client.messages
-        .create({
-            body: message,
-            from: twilioPhoneNumber,
-            to: phoneNumber
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData),
+    })
+        .then(response => {
+            if (response.ok) {
+                console.log('Email sent successfully');
+            } else {
+                console.error('Failed to send email');
+            }
         })
-        .then(message => console.log(message.sid));
-
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
