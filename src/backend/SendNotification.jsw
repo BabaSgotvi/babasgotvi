@@ -1,0 +1,39 @@
+import { getSecret } from 'wix-secrets-backend';
+
+const accountSid = getSecret("TEST_TWILIO_ACCOUNT_SID");
+const authToken = getSecret("TEST_TWILIO_AUTH_TOKEN");
+const twilioPhoneNumber = '+13344534393'; // +1 334 453 4393
+
+export async function sendSMSNotificationFETCH(phoneNumber, message) {
+    console.log("sendSMSNotification has been called");
+
+
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+
+    const headers = {
+        'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
+        'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    const body = `To=${encodeURIComponent(phoneNumber)}&From=${encodeURIComponent(twilioPhoneNumber)}&Body=${encodeURIComponent(message)}`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: body
+    });
+
+    const responseData = await response.json();
+    console.log(responseData);
+}
+export function sendSMSNotificationMODULE(phoneNumber, message) {
+    const client = require('twilio')(accountSid, authToken);
+    client.messages
+        .create({
+            body: message,
+            from: twilioPhoneNumber,
+            to: phoneNumber
+        })
+        .then(message => console.log(message.sid));
+
+}

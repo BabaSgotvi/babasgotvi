@@ -3,10 +3,14 @@ import wixData from 'wix-data';
 import * as Orders from './Orders';
 import { getSecret } from 'wix-secrets-backend';
 
-const apiKey = await getSecret("TEST_STRIPE_SECRET_KEY");
 const stripeApiUrl = "https://api.stripe.com/v1";
-
+let apiKey;
+async function getApiKey() {
+    apiKey = await getSecret("TEST_STRIPE_SECRET_KEY");
+}
 export async function charge(token, orderObj) {
+    await getApiKey();
+    console.log("apiKey: " + apiKey);
     console.log("Charge has been called");
     const customerId = await createOrRetrieveCustomer(orderObj);
     const chargeObj = await createChargeObj(orderObj);

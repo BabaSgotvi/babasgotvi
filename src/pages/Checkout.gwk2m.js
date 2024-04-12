@@ -1,5 +1,4 @@
 import { local, session, memory } from "wix-storage-frontend";
-// @ts-ignore
 import * as Pay from 'backend/Pay';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
