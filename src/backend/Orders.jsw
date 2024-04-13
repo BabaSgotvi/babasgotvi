@@ -22,7 +22,6 @@ export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
     try {
         const result = await wixData.insert("UpcomingOrders", orderItem);
         console.log("Order has been created:", result);
-        Pay.issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
         return { status: "success", id: orderItem._id };
     } catch (error) {
         console.error("Failed to create order:", error);

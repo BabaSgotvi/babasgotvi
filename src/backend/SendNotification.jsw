@@ -1,7 +1,28 @@
 import { getSecret } from 'wix-secrets-backend';
 import { fetch } from 'wix-fetch';
-export async function sendEmail(recipientEmail, subject, body) {
-    console.log("sendEmail() has been called");
+import * as tools from 'public/tools';
+export async function sendNotifications(orderObj, descriptionLines) {
+    /// Customer
+    const subject = "Потвърждение на Вашата поръчка | BabaSgotvi";
+    const name = tools.transliterate(orderObj.cardholder);
+    const payAmount = "0.00 лв.";
+    const orderDescription = `<span style="color: #CC4187; font-weight: bold;">${descriptionLines.join('<br>')}</span>`;
+    const placeAndTime = `адрес: <span style="color: #CC4187; font-weight: bold;">${orderObj.address1.formatted}</span>,<br>
+    адрес 2: <span style="color: #CC4187; font-weight: bold;">${orderObj.address2}</span>,<br>
+    дата: <span style="color: #CC4187; font-weight: bold;">${orderObj.date}</span>,<br>
+    час: <span style="color: #CC4187; font-weight: bold;">${orderObj.time}</span>`;
+    const body = `Уважаеми ${name},<br><br>
+    Вашата поръчка за ${payAmount} :<br><br>
+    ${orderDescription}<br><br>
+    ще бъде доставена на:<br><br>
+    ${placeAndTime}<br><br>
+    Натиснете <a href="https://www.google.com/">тук</a> за да проследите поръчката си.<br><br>
+    С уважение и благодарност,<br>
+    Екипът на BabaSgotvi`;
+    const bodyhtml = `<div style="font-size: 1.5vw; font-weight: bold; text-align: center; color: #333333;">${body}</div>`;
+    await sendEmail(orderObj.email, subject, bodyhtml);
+}
+async function sendEmail(recipientEmail, subject, body) {
     const apiKey = await getSecret('TWILIO_SENDGRID_API_KEY');
     const sendGridURL = 'https://api.sendgrid.com/v3/mail/send';
 
@@ -17,11 +38,11 @@ export async function sendEmail(recipientEmail, subject, body) {
             },
         ],
         from: {
-            email: 'babatigotvi@gmail.com', // Replace with sender's email
+            email: 'babatigotvi@gmail.com',
         },
         content: [
             {
-                type: 'text/plain',
+                type: 'text/html',
                 value: body,
             },
         ],

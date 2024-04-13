@@ -2,6 +2,7 @@ import { fetch } from 'wix-fetch';
 import wixData from 'wix-data';
 import * as Orders from './Orders';
 import { getSecret } from 'wix-secrets-backend';
+import * as SendNotification from 'backend/SendNotification';
 
 const stripeApiUrl = "https://api.stripe.com/v1";
 let apiKey;
@@ -10,10 +11,11 @@ async function getApiKey() {
 }
 export async function charge(token, orderObj) {
     await getApiKey();
-    console.log("apiKey: " + apiKey);
     console.log("Charge has been called");
     const customerId = await createOrRetrieveCustomer(orderObj);
-    const chargeObj = await createChargeObj(orderObj);
+    const totalChargeObj = await createChargeObj(orderObj);
+    const chargeObj = totalChargeObj.chargeObj;
+    const descriptionLines = totalChargeObj.descriptionLines;
     let orderInfo = await Orders.issueOrder(orderObj, chargeObj);
     if (orderInfo.status == "failed") {
         return { "error": "Failed to create order" };
@@ -29,9 +31,9 @@ export async function charge(token, orderObj) {
             },
             body: encodeBody(token, chargeObj)
         });
-        if (response.status >= 200 && response.status < 300) {
-            // transaction successful - get charge ID
-            // TODO: ADD THE CHARGEDID TO THE ORDER IN THE DATABASE
+        if (response.status >= 200 && response.status < 300) { // transaction was successful
+            await issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
+            await SendNotification.sendNotifications(orderObj, descriptionLines);
             const ret = await response.json();
             return { "chargeId": ret.id };
         }
@@ -90,6 +92,7 @@ function encodeBody(token, chargeObj) {
 async function createChargeObj(orderObj) {
     let totalPrice = 0;
     let description = "поръчка: ";
+    let descriptionLines = [];
     // Create an array to store all the promises returned by the wixData queries
     let promises = [];
 
@@ -102,7 +105,8 @@ async function createChargeObj(orderObj) {
                 .find()
                 .then((results) => {
                     totalPrice += parseFloat(results.items[0].price) * orderObj.amounts[i];
-                    description += results.items[0].title + " x" + orderObj.amounts[i] + ", ";
+                    description += results.items[0].title + " [" + orderObj.amounts[i] + "], ";
+                    descriptionLines.push(results.items[0].title + " [" + orderObj.amounts[i] + "], ");
                 })
         );
     });
@@ -115,14 +119,18 @@ async function createChargeObj(orderObj) {
 
     // Return the chargeObj object
     return {
-        "amount": (totalPrice * 100).toFixed(0), // convert to cents
-        "currency": "BGN",
-        "description": description,
-        "receipt_email": orderObj.email,
-        // "customer": customerId, // gives errors at the moment
+        chargeObj:
+        {
+            "amount": (totalPrice * 100).toFixed(0), // convert to cents
+            "currency": "BGN",
+            "description": description,
+            "receipt_email": orderObj.email,
+            // "customer": customerId, // gives errors at the moment
+        },
+        descriptionLines: descriptionLines
     };
 }
-export async function issuePayout(providerId, amount) {
+async function issuePayout(providerId, amount) {
     const provider = await wixData.query("ProviderList").eq("_id", providerId).find();
     const iban = provider.items[0].iban;
     console.log("IBAN: " + iban + "\n Amount in cents: " + amount);
