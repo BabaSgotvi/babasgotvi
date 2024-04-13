@@ -1,5 +1,4 @@
 import wixData from 'wix-data';
-import * as Pay from './Pay';
 
 export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
     console.log("issueOrder has been called");
@@ -25,7 +24,7 @@ export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
         return { status: "success", id: orderItem._id };
     } catch (error) {
         console.error("Failed to create order:", error);
-        return { status: "failed", id: null };
+        return { status: "failed", id: null, error: error };
     }
 }
 

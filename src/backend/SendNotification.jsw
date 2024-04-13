@@ -1,16 +1,26 @@
 import { getSecret } from 'wix-secrets-backend';
 import { fetch } from 'wix-fetch';
 import * as tools from 'public/tools';
+import wixData from 'wix-data';
 export async function sendNotifications(orderObj, chargeObj, descriptionLines) {
     /// Customer
-    let subject = "Потвърждение на Вашата поръчка | BabaSgotvi";
+    let subject = "Информация за Вашата поръчка | BabaSgotvi";
     let name = tools.transliterate(orderObj.cardholder);
     let payAmount = chargeObj.amount / 100;
     let orderDescription = s2(descriptionLines.join('<br>'));
-    let placeAndTime = s1("адрес: ") + s2(orderObj.address1.formatted) + nL(1) +
-        s1("адрес 2: ") + s2(orderObj.address2) + nL(1) +
-        s1("дата: ") + s2(orderObj.date) + nL(1) +
-        s1("час: ") + s2(orderObj.time);
+    let placeAndTime = "";
+    if (orderObj.address2 != "") {
+        placeAndTime = s1("адрес: ") + s2(orderObj.address1.formatted) + nL(1) +
+            s1("адрес 2: ") + s2(orderObj.address2) + nL(1) +
+            s1("дата: ") + s2(orderObj.date) + nL(1) +
+            s1("час: ") + s2(orderObj.time);
+    }
+    else {
+        placeAndTime = s1("адрес: ") + s2(orderObj.address1.formatted) + nL(1) +
+            s1("дата: ") + s2(orderObj.date) + nL(1) +
+            s1("час: ") + s2(orderObj.time);
+    }
+
     let body = s1("Уважаеми " + name + "," +
         nL(2) + "Вашата поръчка за ") + s2(payAmount + " лв:" + nL(2) +
             orderDescription) + nL(2) +
@@ -19,27 +29,34 @@ export async function sendNotifications(orderObj, chargeObj, descriptionLines) {
         s1("Натиснете ") + `<a href="https://google.com">тук</a>` + s1(" за да проследите поръчката си." + nL(2) +
             "С уважение и благодарност," + nL(1) +
             "BabaSgotvi");
+    body = `<div style="font-size: 1.5vw; font-weight: normal; text-align: left; color: #333333;">
+                <span style="font-size: 2.5vw; font-weight: bold; color: #CC4187; text-align: left;">  BabaSgotvi</span>${nL(2)}
+                ${body}
+                </div>`;
     await sendEmail(orderObj.email, subject, body);
-    /*
-    BabaSgotvi
-    Уважаеми ...,
-    Вашата поръчка за ... лв:
-    ...
-    ще бъде доставена на:
-    адрес: ...
-    адрес 2: ...
-    дата: ...
-    час: ...
-    Натиснете тук за да проследите поръчката си.
-    С уважение и благодарност,
-    BabaSgotvi
-    */
-
 
     /// Provider
-    // subject = "Нова поръчка | BabaSgotvi";
+    const providerAddress = ""; // get from database
+    const providerEmail = await wixData.get('ProviderList', orderObj.providerId)
+        .then(result => result.email)
+        .catch(error => {
+            console.error('Error:', error);
+            return '';
+        });
+    console.log("providerEmail: " + providerEmail);
+    let routeTime = await calculateRouteTime(providerAddress, orderObj.address1.formatted);
+    let time = addMinutes(orderObj.time, -routeTime);
 
-
+    subject = `Нова поръчка за ${payAmount} лв. | BabaSgotvi`;
+    body = s1("Имате нова поръчка за ") + s2(payAmount + " лв:") + nL(2) +
+        orderDescription + nL(2) +
+        s1("за ") + s2(orderObj.date + " в " + time) + nL(2) +
+        s1("Моля бъдете готови с поръчката предварително, защото доставчикът може да подрани.");
+    body = `<div style="font-size: 1.5vw; font-weight: normal; text-align: left; color: #333333;">
+                <span style="font-size: 2.5vw; font-weight: bold; color: #CC4187; text-align: left;">  BabaSgotvi</span>${nL(2)}
+                ${body}
+                </div>`;
+    await sendEmail(providerEmail, subject, body);
 }
 async function sendEmail(recipientEmail, subject, body) {
     const apiKey = await getSecret('TWILIO_SENDGRID_API_KEY');
@@ -62,10 +79,7 @@ async function sendEmail(recipientEmail, subject, body) {
         content: [
             {
                 type: 'text/html',
-                value: `<div style="font-size: 1.5vw; font-weight: normal; text-align: center; color: #333333;">
-                <span style="font-size: 2.5vw; font-weight: bold; color: #CC4187; text-align: left;">  BabaSgotvi</span>${nL(2)}
-                ${body}
-                </div>`,
+                value: body,
             },
         ],
     };
@@ -97,4 +111,35 @@ function s2(text) {
 }
 function nL(times) {
     return '<br>'.repeat(times);
+}
+async function calculateRouteTime(address1, address2) {
+    return 45;
+    // const apiKey = await getSecret('GOOGLE_MAPS_API_KEY');
+    // const googleMapsURL = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${address1}&destinations=${address2}&key=${apiKey}`;
+
+    // return fetch(googleMapsURL)
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         if (data.status === 'OK') {
+    //             return data.rows[0].elements[0].duration.value;
+    //         } else {
+    //             console.error('Failed to calculate route time');
+    //         }
+    //     })
+    //     .catch(error => {
+    //         console.error('Error:', error);
+    //     });
+}
+function addMinutes(time, minutesToAdd) {
+    // Split the time string into hours and minutes
+    const [hoursStr, minutesStr] = time.split(':');
+
+    // Convert hours and minutes to numbers
+    let hours = parseInt(hoursStr);
+    let minutes = parseInt(minutesStr);
+    let totalMinutes = hours * 60 + minutes;
+    let newMinutes = totalMinutes + minutesToAdd;
+    let formattedHours = Math.floor(newMinutes / 60);
+    let formattedMinutes = newMinutes % 60;
+    return `${formattedHours}:${formattedMinutes}`;
 }
