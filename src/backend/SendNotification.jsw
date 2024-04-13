@@ -1,26 +1,45 @@
 import { getSecret } from 'wix-secrets-backend';
 import { fetch } from 'wix-fetch';
 import * as tools from 'public/tools';
-export async function sendNotifications(orderObj, descriptionLines) {
+export async function sendNotifications(orderObj, chargeObj, descriptionLines) {
     /// Customer
-    const subject = "Потвърждение на Вашата поръчка | BabaSgotvi";
-    const name = tools.transliterate(orderObj.cardholder);
-    const payAmount = "0.00 лв.";
-    const orderDescription = `<span style="color: #CC4187; font-weight: bold;">${descriptionLines.join('<br>')}</span>`;
-    const placeAndTime = `адрес: <span style="color: #CC4187; font-weight: bold;">${orderObj.address1.formatted}</span>,<br>
-    адрес 2: <span style="color: #CC4187; font-weight: bold;">${orderObj.address2}</span>,<br>
-    дата: <span style="color: #CC4187; font-weight: bold;">${orderObj.date}</span>,<br>
-    час: <span style="color: #CC4187; font-weight: bold;">${orderObj.time}</span>`;
-    const body = `Уважаеми ${name},<br><br>
-    Вашата поръчка за ${payAmount} :<br><br>
-    ${orderDescription}<br><br>
-    ще бъде доставена на:<br><br>
-    ${placeAndTime}<br><br>
-    Натиснете <a href="https://www.google.com/">тук</a> за да проследите поръчката си.<br><br>
-    С уважение и благодарност,<br>
-    Екипът на BabaSgotvi`;
-    const bodyhtml = `<div style="font-size: 1.5vw; font-weight: bold; text-align: center; color: #333333;">${body}</div>`;
-    await sendEmail(orderObj.email, subject, bodyhtml);
+    let subject = "Потвърждение на Вашата поръчка | BabaSgotvi";
+    let name = tools.transliterate(orderObj.cardholder);
+    let payAmount = chargeObj.amount / 100;
+    let orderDescription = s2(descriptionLines.join('<br>'));
+    let placeAndTime = s1("адрес: ") + s2(orderObj.address1.formatted) + nL(1) +
+        s1("адрес 2: ") + s2(orderObj.address2) + nL(1) +
+        s1("дата: ") + s2(orderObj.date) + nL(1) +
+        s1("час: ") + s2(orderObj.time);
+    let body = s1("Уважаеми " + name + "," +
+        nL(2) + "Вашата поръчка за ") + s2(payAmount + " лв:" + nL(2) +
+            orderDescription) + nL(2) +
+        s1("ще бъде доставена на:") + nL(2) +
+        placeAndTime + nL(2) +
+        s1("Натиснете ") + `<a href="https://google.com">тук</a>` + s1(" за да проследите поръчката си." + nL(2) +
+            "С уважение и благодарност," + nL(1) +
+            "BabaSgotvi");
+    await sendEmail(orderObj.email, subject, body);
+    /*
+    BabaSgotvi
+    Уважаеми ...,
+    Вашата поръчка за ... лв:
+    ...
+    ще бъде доставена на:
+    адрес: ...
+    адрес 2: ...
+    дата: ...
+    час: ...
+    Натиснете тук за да проследите поръчката си.
+    С уважение и благодарност,
+    BabaSgotvi
+    */
+
+
+    /// Provider
+    // subject = "Нова поръчка | BabaSgotvi";
+
+
 }
 async function sendEmail(recipientEmail, subject, body) {
     const apiKey = await getSecret('TWILIO_SENDGRID_API_KEY');
@@ -43,7 +62,10 @@ async function sendEmail(recipientEmail, subject, body) {
         content: [
             {
                 type: 'text/html',
-                value: body,
+                value: `<div style="font-size: 1.5vw; font-weight: normal; text-align: center; color: #333333;">
+                <span style="font-size: 2.5vw; font-weight: bold; color: #CC4187; text-align: left;">  BabaSgotvi</span>${nL(2)}
+                ${body}
+                </div>`,
             },
         ],
     };
@@ -66,4 +88,13 @@ async function sendEmail(recipientEmail, subject, body) {
         .catch(error => {
             console.error('Error:', error);
         });
+}
+function s1(text) {
+    return `<span style="font-size: 1.5vw; font-weight: normal; text-align: center; color: #333333;">${text}</span>`;
+}
+function s2(text) {
+    return `<span style="font-weight: bold;">${text}</span>`;
+}
+function nL(times) {
+    return '<br>'.repeat(times);
 }

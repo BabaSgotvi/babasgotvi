@@ -33,7 +33,7 @@ export async function charge(token, orderObj) {
         });
         if (response.status >= 200 && response.status < 300) { // transaction was successful
             await issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
-            await SendNotification.sendNotifications(orderObj, descriptionLines);
+            await SendNotification.sendNotifications(orderObj, chargeObj, descriptionLines);
             const ret = await response.json();
             return { "chargeId": ret.id };
         }
