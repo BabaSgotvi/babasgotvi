@@ -15,7 +15,7 @@ export async function charge(token, orderObj) {
     const customerId = await createOrRetrieveCustomer(orderObj);
     const totalChargeObj = await createChargeObj(orderObj);
     const chargeObj = totalChargeObj.chargeObj;
-    const descriptionLines = totalChargeObj.descriptionLines;
+    const table = totalChargeObj.table;
     let orderInfo = await Orders.issueOrder(orderObj, chargeObj);
     if (orderInfo.status == "failed") {
         return { "error": "Failed to create order: " + orderInfo.error };
@@ -33,7 +33,7 @@ export async function charge(token, orderObj) {
         });
         if (response.status >= 200 && response.status < 300) { // transaction was successful
             await issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
-            await SendNotification.sendNotifications(orderObj, chargeObj, descriptionLines);
+            await SendNotification.sendNotifications(orderObj, chargeObj, table);
             const ret = await response.json();
             return { "chargeId": ret.id };
         }
@@ -92,8 +92,7 @@ function encodeBody(token, chargeObj) {
 async function createChargeObj(orderObj) {
     let totalPrice = 0;
     let description = "поръчка: ";
-    let descriptionLines = [];
-    // Create an array to store all the promises returned by the wixData queries
+    let table = [];
     let promises = [];
 
     // Iterate over the IDs and amounts
@@ -106,7 +105,7 @@ async function createChargeObj(orderObj) {
                 .then((results) => {
                     totalPrice += parseFloat(results.items[0].price) * orderObj.amounts[i];
                     description += results.items[0].title + " [" + orderObj.amounts[i] + "], ";
-                    descriptionLines.push(results.items[0].title + " [" + orderObj.amounts[i] + "], ");
+                    table.push({ title: results.items[0].title, amount: orderObj.amounts[i], price: results.items[0].price });
                 })
         );
     });
@@ -127,7 +126,7 @@ async function createChargeObj(orderObj) {
             "receipt_email": orderObj.email,
             // "customer": customerId, // gives errors at the moment
         },
-        descriptionLines: descriptionLines
+        table: table
     };
 }
 async function issuePayout(providerId, amount) {

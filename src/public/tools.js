@@ -24,3 +24,25 @@ export function transliterate(name) {
     }
     return transliteratedName;
 }
+export function addMinutes(time, minutesToAdd) {
+    // Split the time string into hours and minutes
+    const [hoursStr, minutesStr] = time.split(':');
+
+    // Convert hours and minutes to numbers
+    let hours = parseInt(hoursStr);
+    let minutes = parseInt(minutesStr);
+    let totalMinutes = hours * 60 + minutes;
+    let newMinutes = totalMinutes + minutesToAdd;
+    let formattedHours = Math.floor(newMinutes / 60);
+    let formattedMinutes = newMinutes % 60;
+    return `${formattedHours}:${formattedMinutes}`;
+}
+export async function calculateRouteTime() {
+    return 40;
+}
+export function replaceFlags(text, flags, tags) {
+    for (let i = 0; i < tags.length; i++) {
+        text = text.replace(new RegExp(flags[i], 'g'), tags[i]);
+    }
+    return text;
+}
