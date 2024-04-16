@@ -3,7 +3,7 @@ import wixData from "wix-data";
 import wixLocation from "wix-location";
 import { local, session, memory } from "wix-storage-frontend";
 import wixWindow from 'wix-window';
-import { formatDate } from "public/timeManager";
+import { formatDate } from "public/tools";
 
 // vars
 let providerId;

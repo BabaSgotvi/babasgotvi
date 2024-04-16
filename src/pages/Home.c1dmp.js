@@ -3,7 +3,7 @@ import wixData from 'wix-data';
 import wixWindow from 'wix-window';
 import { local, session, memory } from 'wix-storage';
 import wixWindowFrontend from 'wix-window-frontend';
-import * as timeManager from 'public/timeManager';
+import * as tools from 'public/tools';
 let allDates;
 let deliveryDate;
 $w.onReady(function () {
@@ -14,7 +14,7 @@ $w("#providerList").onReady(() => {
     refreshListed();
 })
 function refreshListed() {
-    $w("#providerList").setFilter(wixData.filter().eq(timeManager.getDayOfWeek(deliveryDate, "EN"), true));
+    $w("#providerList").setFilter(wixData.filter().eq(tools.getDayOfWeek(deliveryDate, "EN"), true));
     $w("#providerList").refresh();
     $w("#providerRepeater").onItemReady(($w, itemData) => {
         $w("#ratingsText").text = "★ " + itemData.rating + " (" + itemData.ratings + ")";
@@ -25,7 +25,7 @@ function refreshListed() {
     })
 }
 function initializeElements() {
-    allDates = timeManager.getNextTwoWeeks();
+    allDates = tools.getNextTwoWeeks();
 
     session.setItem("allDates", allDates);
     let promises = allDates.map(date => countAvailableProviders(date));
@@ -36,7 +36,7 @@ function initializeElements() {
             session.setItem("availableProviders", availableProviders);
         })
     deliveryDate = allDates[0];
-    $w("#deliveryDate").text = timeManager.dateDisplay(deliveryDate);
+    $w("#deliveryDate").text = tools.dateDisplay("" + deliveryDate);
 
     if (session.getItem("selectedDay") == null && session.getItem("selectedDay") == undefined) {
         session.setItem("selectedDay", allDates[0]);
@@ -45,18 +45,18 @@ function initializeElements() {
 
 function countAvailableProviders(dateString) {
     return wixData.query("ProviderList")
-        .eq(timeManager.getDayOfWeek(dateString, "EN"), true)
+        .eq(tools.getDayOfWeek(dateString, "EN"), true)
         .count();
 }
 
 $w("#text7").onClick(async () => {
     deliveryDate = await wixWindow.openLightbox("DatePick");
-    $w("#deliveryDate").text = timeManager.dateDisplay(deliveryDate);
+    $w("#deliveryDate").text = tools.dateDisplay("" + deliveryDate);
     refreshListed();
 })
 $w("#deliveryDate").onClick(async () => {
     deliveryDate = await wixWindow.openLightbox("DatePick");
-    $w("#deliveryDate").text = timeManager.dateDisplay(deliveryDate);
+    $w("#deliveryDate").text = tools.dateDisplay("" + deliveryDate);
     refreshListed();
 });
 
