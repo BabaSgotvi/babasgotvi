@@ -1,3 +1,5 @@
+import wixData from 'wix-data';
+
 export function transliterate(name) {
     const transliterationMap = {
         'A': 'А', 'B': 'Б', 'C': 'Ц', 'D': 'Д', 'E': 'Е', 'F': 'Ф', 'G': 'Г', 'H': 'Х', 'I': 'И',
@@ -112,4 +114,9 @@ export function formatDateString(dateString) {
 
     // Return the formatted date string
     return day + " " + monthName;
+}
+export function countAvailableProviders(dateString) {
+    return wixData.query("ProviderList")
+        .eq(getDayOfWeek(dateString, "EN"), true)
+        .count();
 }
