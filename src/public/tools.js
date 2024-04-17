@@ -117,6 +117,7 @@ export function formatDateString(dateString) {
 }
 export function countAvailableProviders(dateString) {
     return wixData.query("ProviderList")
-        .eq(getDayOfWeek(dateString, "EN"), true)
+        .eq(getDayOfWeek(dateString, "EN", false), true)
+        .eq("validForDisplay", true)
         .count();
 }
