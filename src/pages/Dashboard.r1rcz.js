@@ -12,11 +12,12 @@ const sections = {
 let currentSection = sections.orders;
 const cutOffOptions =
 {
-    threedaysbeforemidnight: 1, // 3 дни преди полунощ
-    twodaysbeforenoon: 2, // 2 дни преди обяд
+    threedaysbeforemidnight: 5, // 3 дни преди полунощ
+    twodaysbeforenoon: 4, // 2 дни преди обяд
     twodaysbeforemidnight: 3, // 2 дни преди полунощ
-    daybeforenoon: 4, // ден преди обяд
-    daybeforemidnight: 5, // ден преди полунощ
+    daybeforenoon: 2, // ден преди обяд
+    daybeforemidnight: 1, // ден преди полунощ
+    immediate: 0, // веднага
 }
 let currentCutOffOption = cutOffOptions.daybeforenoon;
 $w.onReady(async function () {

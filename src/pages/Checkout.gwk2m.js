@@ -3,7 +3,7 @@ import * as Pay from 'backend/Pay';
 import * as stripeAPI from "public/stripeAPI";
 import wixLocation from 'wix-location';
 import wixData from 'wix-data';
-import * as timeManager from 'public/timeManager';
+import * as tools from 'public/tools';
 
 //
 let ids = [];
@@ -25,7 +25,7 @@ $w.onReady(async function () {
     retrieveInputs();
     // iterateFocus();
     $w("#date").disable();
-    $w("#date").value = timeManager.getDayOfWeek(session.getItem("selectedDay"), "BG", false) + " " + session.getItem("selectedDay");
+    $w("#date").value = tools.getDayOfWeek(session.getItem("deliveryDate"), "BG", false) + " " + session.getItem("deliveryDate");
     const hours = await retrieveHours(session.getItem("providerId"));
     $w("#time").options = hours;
 });
@@ -71,7 +71,7 @@ export function payNow() {
         "address1": $w("#address1").value,
         "address2": $w("#address2").value,
         "instructions": $w("#instructions").value,
-        "date": session.getItem("selectedDay"),
+        "date": session.getItem("deliveryDate"),
         "time": $w("#time").value,
     }
     stripeAPI.createToken(stripeAPI.encodeCard(createCard()))

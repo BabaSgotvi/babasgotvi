@@ -115,9 +115,168 @@ export function formatDateString(dateString) {
     // Return the formatted date string
     return day + " " + monthName;
 }
-export function countAvailableProviders(dateString) {
-    return wixData.query("ProviderList")
+export async function countAvailableProviders(dateString) {
+    const cutoff = isInCutoff(dateString);
+    const providers = await wixData.query("ProviderList")
         .eq(getDayOfWeek(dateString, "EN", false), true)
         .eq("validForDisplay", true)
-        .count();
+        .find();
+    let count = 0;
+    providers.items.forEach(provider => {
+        if (cutoff > provider.orderCutoff) {
+            count++;
+        }
+    });
+    return count;
+}
+export function isInCutoff(futureDateString) {
+    /*
+        outsidecutoff: 6, // извън всякакви недостъпни времеви интервали
+        threedaysbeforemidnight: 5, // 3 дни преди полунощ
+        twodaysbeforenoon: 4, // 2 дни преди обяд
+        twodaysbeforemidnight: 3, // 2 дни преди полунощ
+        daybeforenoon: 2, // ден преди обяд
+        daybeforemidnight: 1, // ден преди полунощ
+     */
+    const [day, month] = futureDateString.split("/");
+    const year = new Date().getFullYear();
+    const futureDate = new Date(year, month - 1, day);
+    const today = new Date();
+
+    const timeDiff = futureDate.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = today.getHours();
+
+    if (daysDiff == 1) { // tommorow
+        if (hours < 12) {
+            return 2; // daybeforenoon
+        } else {
+            return 1; // daybeforemidnight
+        }
+    }
+    else if (daysDiff == 2) // day after tomorrow
+    {
+        if (hours < 12) {
+            return 4; // twodaysbeforenoon
+        } else {
+            return 3; // twodaysbeforemidnight
+        }
+    }
+    else if (daysDiff == 3) // day after day after tomorrow
+    {
+        return 5; // threedaysbeforemidnight
+    }
+    else if (daysDiff > 3) // more than 3 days in the future
+    {
+        return 6; // outsidecutoff
+    }
+    else {
+        return "Unexpected value. Outside of the expected range";
+    }
+}
+
+
+export function convertTime(amount, from, to) {
+    let result;
+    switch (from) {
+        case 'milliseconds':
+            switch (to) {
+                case 'seconds':
+                    result = amount / 1000;
+                    break;
+                case 'minutes':
+                    result = amount / (1000 * 60);
+                    break;
+                case 'hours':
+                    result = amount / (1000 * 60 * 60);
+                    break;
+                case 'days':
+                    result = amount / (1000 * 60 * 60 * 24);
+                    break;
+                default:
+                    result = amount;
+                    break;
+            }
+            break;
+        case 'seconds':
+            switch (to) {
+                case 'milliseconds':
+                    result = amount * 1000;
+                    break;
+                case 'minutes':
+                    result = amount / 60;
+                    break;
+                case 'hours':
+                    result = amount / (60 * 60);
+                    break;
+                case 'days':
+                    result = amount / (60 * 60 * 24);
+                    break;
+                default:
+                    result = amount;
+                    break;
+            }
+            break;
+        case 'minutes':
+            switch (to) {
+                case 'milliseconds':
+                    result = amount * (1000 * 60);
+                    break;
+                case 'seconds':
+                    result = amount * 60;
+                    break;
+                case 'hours':
+                    result = amount / 60;
+                    break;
+                case 'days':
+                    result = amount / (60 * 24);
+                    break;
+                default:
+                    result = amount;
+                    break;
+            }
+            break;
+        case 'hours':
+            switch (to) {
+                case 'milliseconds':
+                    result = amount * (1000 * 60 * 60);
+                    break;
+                case 'seconds':
+                    result = amount * (60 * 60);
+                    break;
+                case 'minutes':
+                    result = amount * 60;
+                    break;
+                case 'days':
+                    result = amount / 24;
+                    break;
+                default:
+                    result = amount;
+                    break;
+            }
+            break;
+        case 'days':
+            switch (to) {
+                case 'milliseconds':
+                    result = amount * (1000 * 60 * 60 * 24);
+                    break;
+                case 'seconds':
+                    result = amount * (60 * 60 * 24);
+                    break;
+                case 'minutes':
+                    result = amount * (60 * 24);
+                    break;
+                case 'hours':
+                    result = amount * 24;
+                    break;
+                default:
+                    result = amount;
+                    break;
+            }
+            break;
+        default:
+            result = amount;
+            break;
+    }
+    return result;
 }

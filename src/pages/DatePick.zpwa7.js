@@ -19,7 +19,7 @@ $w("#weekRepeater").forEachItem(($w) => {
     let singorplur = (availableProviders[dateIndex] === 1) ? "готвач" : "готвача";
     $w("#availableProvidersText").text = "" + availableProviders[dateIndex++] + " " + singorplur;
     $w("#box1").onClick(() => {
-        session.setItem("selectedDay", allDates[localIndex]);
+        session.setItem("deliveryDate", allDates[localIndex]);
         setTimeout(() => {
             wixWindowFrontend.lightbox.close(allDates[localIndex]);
         }, 300);

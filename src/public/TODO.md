@@ -1,9 +1,9 @@
 BUSINESS TODO LIST
 
 PLATFORM:
-
-2. In Home, fix the loading bugs.
+2. Finish FoodProfile.
 3. In Menu, filter foods based on their available days.
+3.5. In Tools, fix the orderCutoff, because its still acting a bit weird. 
 4. In Checkout, add checking if all nessesary fields are filled ( and filled correctly )
 5. Refine emails sent to providers and customers
 6. In Checkout, add the orders part, add ordering packaging, editing profile, tours, connecting bank account, checking if the provider is valid / ready to be shown on the home page, etc. ( This might take up to 2 months )
