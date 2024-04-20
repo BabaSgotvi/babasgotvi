@@ -8,66 +8,78 @@ let allDates;
 let deliveryDate;
 setContinuousRefresh();
 initializeVars();
-forEachItemsInRepeater();
+filterProviderRepeater();
 
 function setContinuousRefresh() {
     clearInterval(parseInt(session.getItem("intervalId")));
     const intervalId = setInterval(() => {
         console.log("refreshing");
-        forEachItemsInRepeater();
+        filterProviderRepeater();
     }, tools.convertTime(1, "minutes", "milliseconds"));
     session.setItem("intervalId", intervalId);
 }
-function forEachItemsInRepeater() {
-    const cutoff = tools.isInCutoff(deliveryDate);
-    $w("#providerRepeater").onItemReady(($w, itemData) => {
-        if (cutoff < itemData.orderCutoff) { // cutoff time exceeded
-            $w("#providerBox").collapse();
-            return;
-        }
-        $w("#providerBox").onClick(null); // Remove any existing onClick event handler from #providerBox
-        $w("#providerBox").onClick(() => {
-            wixLocation.to('/menu?Id=' + itemData._id);
+
+async function filterProviderRepeater() {
+    $w("#noProvidersMessage").collapse();
+    const shownProviders = await forEachItemsInRepeater();
+    console.log("Shown providers: ", shownProviders);
+    if (shownProviders == 0) {
+        $w("#noProvidersMessage").expand();
+    }
+}
+
+
+async function forEachItemsInRepeater() {
+    return new Promise((resolve, reject) => {
+        const cutoff = tools.isInCutoff(deliveryDate);
+        let totalItems = 0;
+        let shownProviders = 0;
+
+        $w("#providerRepeater").onItemReady(($w, itemData) => {
+            totalItems++;
+
+            $w("#providerBox").onClick(() => {
+                wixLocation.to('/menu?Id=' + itemData._id);
+            });
+            const dayOfWeek = tools.getDayOfWeek(deliveryDate, "EN", false);
+            let isDayValid;
+            switch (dayOfWeek) {
+                case "monday":
+                    isDayValid = itemData.monday;
+                    break;
+                case "tuesday":
+                    isDayValid = itemData.tuesday;
+                    break;
+                case "wednesday":
+                    isDayValid = itemData.wednesday;
+                    break;
+                case "thursday":
+                    isDayValid = itemData.thursday;
+                    break;
+                case "friday":
+                    isDayValid = itemData.friday;
+                    break;
+                case "saturday":
+                    isDayValid = itemData.saturday;
+                    break;
+                case "sunday":
+                    isDayValid = itemData.sunday;
+                    break;
+            }
+            if (isDayValid && itemData.validForDisplay && cutoff >= itemData.orderCutoff) {
+                shownProviders++;
+            } else {
+                $w("#providerBox").collapse();
+            }
+
+            // If all items are processed, resolve the promise
+            if (totalItems === $w("#providerRepeater").data.length) {
+                resolve(shownProviders);
+            }
         });
-        if (itemData.validForDisplay == true) {
-            $w("#providerBox").expand();
-        }
-        else {
-            $w("#providerBox").collapse();
-            return;
-        }
-        switch (tools.getDayOfWeek(deliveryDate, "EN", false)) {
-            case "monday":
-                if (itemData.monday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "tuesday":
-                if (itemData.tuesday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "wednesday":
-                if (itemData.wednesday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "thursday":
-                if (itemData.thursday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "friday":
-                if (itemData.friday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "saturday":
-                if (itemData.saturday != true)
-                    $w("#providerBox").collapse();
-                return;
-            case "sunday":
-                if (itemData.sunday != true)
-                    $w("#providerBox").collapse();
-                return;
-        }
     });
 }
+
 function initializeVars() {
     console.log("Initializing vars");
     allDates = tools.getNextTwoWeeks();
