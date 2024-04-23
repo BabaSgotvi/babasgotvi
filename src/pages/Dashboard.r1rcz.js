@@ -1,5 +1,5 @@
 import { local, session, memory } from "wix-storage-frontend";
-import wixData from "wix-data";
+import wixData, { get } from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
 
@@ -30,8 +30,10 @@ $w.onReady(async function () {
     changeSection();
     displayProfile();
     changeCutOffOption();
-    $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id));
-    $w("#FoodList").refresh();
+    $w("#FoodList").onReady(() => {
+        $w("#FoodList").setFilter(wixData.filter().eq("owner", account._id));
+        $w("#FoodList").refresh();
+    });
     // @ts-ignore
     $w("#menuRepeaterDashboard").onItemReady(($w, itemData, index) => {
         $w("#editFoodButton").onClick(() => {
@@ -63,6 +65,7 @@ function validateAccount() {
                 .then((results) => {
                     if (results.items.length > 0) {
                         account = results.items[0];
+                        refreshCalender();
                         resolve(account); // Resolve the promise with the account
                     } else {
                         wixLocation.to("/");
@@ -284,8 +287,92 @@ function syncAvaiableDaysWithFood() {
             wixData.save("ProviderList", changed);
         });
 }
-function displayBalance() {
+let flags = [];
+let now;
+let passedSeconds = 61;
+let previousNowFlag;
+setInterval(refreshCalender, 1000);
+async function refreshCalender() {
+    const currentTime = new Date();
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const seconds = currentTime.getSeconds();
+    now = hours + (minutes / 60) + (seconds / 3600);
+    flags = flags.filter((flag) => flag !== previousNowFlag);
+    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "rgb(255, 255, 255)", opacity: 0.8, height: 0.2, place: 0 } }
+    previousNowFlag = nowFlag;
+    if (passedSeconds >= 60) {
+        passedSeconds = 0;
+        flags = await getOrders();
+    }
+    flags.push(nowFlag);
+    passedSeconds++;
+    injectFlags("#html1", flags);
+}
+function injectFlags(iframeId, flags) {
+    $w(iframeId).postMessage({
+        type: "injectFlags",
+        flags: flags
+    });
+}
 
+
+// Function to determine the urgency color based on the time difference
+function getStyle(targetTime, day, i) {
+    const daysAhead = parseInt(day.replace(/[^0-9]/g, "")) - 1;
+    const additionalHours = daysAhead * 24;
+    targetTime += additionalHours;
+    if (targetTime < now) {
+        return { color: `rgba(0, 0, 0`, opacity: 0.5, height: 0.5, place: getPlace(i) };
+    }
+    else if (targetTime > 24) {// 133, 212, 255
+        return { color: `rgba(133, 212, 225)`, opacity: 1, height: 0.5, place: getPlace(i) };
+    }
+    else {
+        return { color: `rgba(255, 17, 0)`, opacity: 1, height: 0.5, place: getPlace(i) };
+    }
+}
+
+function getPlace(index) {
+    return index % 4;
+}
+
+async function getOrders() {
+    const orders = await new Promise((resolve, reject) => {
+        wixData.query("UpcomingOrders")
+            .eq("providerId", account._id)
+            .find()
+            .then((results) => {
+                resolve(results.items);
+            })
+            .catch((error) => {
+                reject(error);
+            });
+    });
+
+    let i = 0;
+    let orderObjs = [];
+    orders.forEach(order => {
+        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.time), label: order.time + " | ...", url: `https://babasgotvi.com/vieworder/${order._id}`, type: "order", style: getStyle(parseToPureHours(order.time), order.date, i++) });
+    });
+    return orderObjs;
+}
+
+function getDay(date) {
+    const today = new Date();
+    const [day, month] = date.split('/');
+    const targetDate = new Date(today.getFullYear(), month - 1, day);
+    const differenceInTime = targetDate.getTime() - today.getTime();
+    const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+
+    // return `day${differenceInDays + 1}`;
+
+    return 'day1';
+}
+
+function parseToPureHours(time) {
+    const [hours, minutes] = time.split(":");
+    return parseInt(hours) + (parseInt(minutes) / 60);
 }
 
 //
