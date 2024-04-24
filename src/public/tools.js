@@ -280,3 +280,12 @@ export function convertTime(amount, from, to) {
     }
     return result;
 }
+export function createId() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()_+-=<>?/.:,;[]{}';
+    let id = '';
+    for (let i = 0; i < 50; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        id += characters[randomIndex];
+    }
+    return id;
+}

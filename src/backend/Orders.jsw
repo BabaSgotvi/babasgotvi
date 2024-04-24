@@ -1,9 +1,9 @@
 import wixData from 'wix-data';
-
+import * as tools from 'public/tools';
 export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
     console.log("issueOrder has been called");
     const orderItem = {
-        _id: createId(),
+        _id: tools.createId(),
         orderObj: orderObj,
         chargeObj: chargeObj,
         title: "предстояща поръчка за " + orderObj.date + ", " + orderObj.time,
@@ -38,14 +38,4 @@ export async function deleteOrder(id) {
         return { status: "failed" };
     }
 
-}
-
-function createId() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()_+-=<>?/.:,;[]{}';
-    let id = '';
-    for (let i = 0; i < 50; i++) {
-        const randomIndex = Math.floor(Math.random() * characters.length);
-        id += characters[randomIndex];
-    }
-    return id;
 }

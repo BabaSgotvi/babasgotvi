@@ -2,7 +2,7 @@ import { local, session, memory } from "wix-storage-frontend";
 import wixData, { get } from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
-
+import * as tools from 'public/tools';
 let account;
 const sections = {
     orders: 1,
@@ -291,6 +291,7 @@ let flags = [];
 let now;
 let passedSeconds = 61;
 let previousNowFlag;
+initializeHtml();
 setInterval(refreshCalender, 1000);
 async function refreshCalender() {
     const currentTime = new Date();
@@ -299,7 +300,7 @@ async function refreshCalender() {
     const seconds = currentTime.getSeconds();
     now = hours + (minutes / 60) + (seconds / 3600);
     flags = flags.filter((flag) => flag !== previousNowFlag);
-    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "rgb(255, 255, 255)", opacity: 0.8, height: 0.2, place: 0 } }
+    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "rgb(255, 255, 255)", opacity: 0.8, height: 0.2, place: 0 }, id: tools.createId() }
     previousNowFlag = nowFlag;
     if (passedSeconds >= 60) {
         passedSeconds = 0;
@@ -307,30 +308,27 @@ async function refreshCalender() {
     }
     flags.push(nowFlag);
     passedSeconds++;
-    injectFlags("#html1", flags);
+    injectFlags(flags);
 }
-function injectFlags(iframeId, flags) {
-    $w(iframeId).postMessage({
+function injectFlags(flags) {
+    $w("#html1").postMessage({
         type: "injectFlags",
         flags: flags
     });
 }
 
-
+function initializeHtml() {
+    console.log("Initializing HTML");
+    const dates = getDates();
+    $w("#html1").postMessage({
+        type: "initialize",
+        dates: dates
+    });
+}
 // Function to determine the urgency color based on the time difference
-function getStyle(targetTime, day, i) {
-    const daysAhead = parseInt(day.replace(/[^0-9]/g, "")) - 1;
-    const additionalHours = daysAhead * 24;
-    targetTime += additionalHours;
-    if (targetTime < now) {
-        return { color: `rgba(0, 0, 0`, opacity: 0.5, height: 0.5, place: getPlace(i) };
-    }
-    else if (targetTime > 24) {// 133, 212, 255
-        return { color: `rgba(133, 212, 225)`, opacity: 1, height: 0.5, place: getPlace(i) };
-    }
-    else {
-        return { color: `rgba(255, 17, 0)`, opacity: 1, height: 0.5, place: getPlace(i) };
-    }
+function getStyle(i) {
+    let color = getRandomVibrantColor();
+    return { color: color, opacity: 0.8, height: 0.5, place: getPlace(i) };
 }
 
 function getPlace(index) {
@@ -353,7 +351,7 @@ async function getOrders() {
     let i = 0;
     let orderObjs = [];
     orders.forEach(order => {
-        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.time), label: order.time + " | ...", url: `https://babasgotvi.com/vieworder/${order._id}`, type: "order", style: getStyle(parseToPureHours(order.time), order.date, i++) });
+        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.time), label: order.time + " | ...", url: `https://babasgotvi.com/vieworder/${order._id}`, type: "order", style: getStyle(i++), id: order._id });
     });
     return orderObjs;
 }
@@ -369,10 +367,26 @@ function getDay(date) {
 
     return 'day1';
 }
-
+function getDates() {
+    let dates = tools.getNextTwoWeeks();
+    return dates;
+}
 function parseToPureHours(time) {
     const [hours, minutes] = time.split(":");
     return parseInt(hours) + (parseInt(minutes) / 60);
+}
+function getRandomVibrantColor() {
+
+    const minValue = 128; // Minimum RGB value to avoid dark colors
+    const maxValue = 255; // Maximum RGB value to allow vibrant colors
+
+    const r = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
+    const g = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
+    const b = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
+
+    return `rgb(${r}, ${g}, ${b})`;
+
+
 }
 
 //
