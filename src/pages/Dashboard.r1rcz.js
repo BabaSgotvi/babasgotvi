@@ -291,6 +291,7 @@ let flags = [];
 let now;
 let passedSeconds = 61;
 let previousNowFlag;
+let upcomingOrder;
 initializeHtml();
 setInterval(refreshCalender, 1000);
 async function refreshCalender() {
@@ -300,7 +301,14 @@ async function refreshCalender() {
     const seconds = currentTime.getSeconds();
     now = hours + (minutes / 60) + (seconds / 3600);
     flags = flags.filter((flag) => flag !== previousNowFlag);
-    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "rgb(255, 255, 255)", opacity: 0.8, height: 0.2, place: 0 }, id: tools.createId() }
+    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "black", opacity: 0.3, height: 0.2, place: 0 }, id: tools.createId() }
+    upcomingOrder = flags.find((flag) => flag.type === "order" && flag.time > now);
+    // get the time betwen now and the upcoming order
+    let timeToNextOrder = 0;
+    if (upcomingOrder != null && upcomingOrder != undefined)
+        timeToNextOrder = upcomingOrder.time - now;
+    timeToNextOrder = Math.round(timeToNextOrder * 60);
+    $w("#upcomingOrderCountdown").text = `${timeToNextOrder} до следващата поръчка !!!ОПРАВИ!!!`;
     previousNowFlag = nowFlag;
     if (passedSeconds >= 60) {
         passedSeconds = 0;
@@ -327,8 +335,8 @@ function initializeHtml() {
 }
 // Function to determine the urgency color based on the time difference
 function getStyle(i) {
-    let color = getRandomVibrantColor();
-    return { color: color, opacity: 0.8, height: 0.5, place: getPlace(i) };
+    let color = getVibrantColor();
+    return { color: color, opacity: 1, height: 0.5, place: getPlace(i) };
 }
 
 function getPlace(index) {
@@ -375,18 +383,22 @@ function parseToPureHours(time) {
     const [hours, minutes] = time.split(":");
     return parseInt(hours) + (parseInt(minutes) / 60);
 }
-function getRandomVibrantColor() {
+function getVibrantColor() {
+    const minBrightness = 100; // Minimum total RGB value to avoid dark colors
+    const maxBrightness = 600; // Maximum total RGB value to avoid white
 
-    const minValue = 128; // Minimum RGB value to avoid dark colors
-    const maxValue = 255; // Maximum RGB value to allow vibrant colors
+    let r, g, b;
+    let totalBrightness;
 
-    const r = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
-    const g = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
-    const b = Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
+    do {
+        r = Math.floor(Math.random() * 256);
+        g = Math.floor(Math.random() * 256);
+        b = Math.floor(Math.random() * 256);
+
+        totalBrightness = r + g + b;
+    } while (totalBrightness < minBrightness || totalBrightness > maxBrightness);
 
     return `rgb(${r}, ${g}, ${b})`;
-
-
 }
 
 //
@@ -415,4 +427,3 @@ function getRandomVibrantColor() {
 //
 /// TODO: ADD TOUR
 //
-
