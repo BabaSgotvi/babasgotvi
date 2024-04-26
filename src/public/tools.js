@@ -42,6 +42,16 @@ export function addMinutes(time, minutesToAdd) {
 export async function calculateRouteTime() {
     return 40;
 }
+export async function calculateTakeawayTime(deliveryTime) { // TODO FIX THIS
+    const [hoursStr, minutesStr] = deliveryTime.split(':');
+    let hours = parseInt(hoursStr);
+    let minutes = parseInt(minutesStr);
+    let totalMinutes = hours * 60 + minutes;
+    totalMinutes -= await calculateRouteTime();
+    let formattedHours = Math.floor(totalMinutes / 60);
+    let formattedMinutes = totalMinutes % 60;
+    return `${formattedHours}:${formattedMinutes}`;
+}
 export function replaceFlags(text, flags, tags) {
     for (let i = 0; i < tags.length; i++) {
         text = text.replace(new RegExp(flags[i], 'g'), tags[i]);

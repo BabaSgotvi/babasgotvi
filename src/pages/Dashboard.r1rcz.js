@@ -3,6 +3,7 @@ import wixData, { get } from "wix-data";
 import wixLocation from "wix-location";
 import wixWindow from 'wix-window';
 import * as tools from 'public/tools';
+
 let account;
 const sections = {
     orders: 1,
@@ -301,14 +302,10 @@ async function refreshCalender() {
     const seconds = currentTime.getSeconds();
     now = hours + (minutes / 60) + (seconds / 3600);
     flags = flags.filter((flag) => flag !== previousNowFlag);
-    const nowFlag = { day: "day1", time: now, label: "Сега: " + hours + ":" + minutes + ":" + seconds, url: "", type: "now", style: { color: "black", opacity: 0.3, height: 0.2, place: 0 }, id: tools.createId() }
+    const nowFlag = { day: "day1", time: now, type: "now", id: tools.createId() }
     upcomingOrder = flags.find((flag) => flag.type === "order" && flag.time > now);
     // get the time betwen now and the upcoming order
-    let timeToNextOrder = 0;
-    if (upcomingOrder != null && upcomingOrder != undefined)
-        timeToNextOrder = upcomingOrder.time - now;
-    timeToNextOrder = Math.round(timeToNextOrder * 60);
-    $w("#upcomingOrderCountdown").text = `${timeToNextOrder} до следващата поръчка !!!ОПРАВИ!!!`;
+    displayTimeToNextOrder(upcomingOrder);
     previousNowFlag = nowFlag;
     if (passedSeconds >= 60) {
         passedSeconds = 0;
@@ -333,16 +330,6 @@ function initializeHtml() {
         dates: dates
     });
 }
-// Function to determine the urgency color based on the time difference
-function getStyle(i) {
-    let color = getVibrantColor();
-    return { color: color, opacity: 1, height: 0.5, place: getPlace(i) };
-}
-
-function getPlace(index) {
-    return index % 4;
-}
-
 async function getOrders() {
     const orders = await new Promise((resolve, reject) => {
         wixData.query("UpcomingOrders")
@@ -359,7 +346,7 @@ async function getOrders() {
     let i = 0;
     let orderObjs = [];
     orders.forEach(order => {
-        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.time), label: order.time + " | ...", url: `https://babasgotvi.com/vieworder/${order._id}`, type: "order", style: getStyle(i++), id: order._id });
+        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.takeawayTime), type: "order", id: order._id });
     });
     return orderObjs;
 }
@@ -371,34 +358,74 @@ function getDay(date) {
     const differenceInTime = targetDate.getTime() - today.getTime();
     const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
 
-    // return `day${differenceInDays + 1}`;
+    return `day${differenceInDays + 1}`;
 
-    return 'day1';
+    // return 'day1';
 }
 function getDates() {
-    let dates = tools.getNextTwoWeeks();
+    const dates = [];
+    const today = new Date();
+    for (let i = 0; i < 15; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        let dateString = `${day}/${month}`;
+        let dayName = tools.getDayOfWeek(dateString, "BG", false);
+        if (i == 0)
+            dayName = "Днес";
+        else if (i == 1)
+            dayName = "Утре";
+        dates.push(`${dayName}, ${dateString}`);
+    }
     return dates;
 }
 function parseToPureHours(time) {
     const [hours, minutes] = time.split(":");
     return parseInt(hours) + (parseInt(minutes) / 60);
 }
-function getVibrantColor() {
-    const minBrightness = 100; // Minimum total RGB value to avoid dark colors
-    const maxBrightness = 600; // Maximum total RGB value to avoid white
+function displayTimeToNextOrder(upcomingOrder) { // TODO: FIX DAYS NOT WORKING
+    let timeToNextOrder = 0;
+    let days = 0;
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+    let daysText = "";
+    let hoursText = "";
+    let minutesText = "";
+    let secondsText = "";
 
-    let r, g, b;
-    let totalBrightness;
+    if (upcomingOrder != null && upcomingOrder != undefined) {
+        $w("#upcomingOrderBox").expand();
+        timeToNextOrder = (upcomingOrder.time - now) * 60 * 60;
+        days = Math.floor(timeToNextOrder / (60 * 60 * 24));
+        hours = Math.floor((timeToNextOrder % (60 * 60 * 24)) / (60 * 60));
+        minutes = Math.floor((timeToNextOrder % (60 * 60)) / 60);
+        seconds = Math.floor(timeToNextOrder % 60);
+    }
+    else {
+        $w("#upcomingOrderBox").collapse();
+        return;
+    }
+    if (days == 1)
+        daysText = `${days} ден`;
+    else if (days > 1)
+        daysText = `${days} дни`;
+    if (hours == 1)
+        hoursText = `${hours} час`;
+    else if (hours > 1)
+        hoursText = `${hours} часа`;
+    if (minutes == 1)
+        minutesText = `${minutes} минута`;
+    else if (minutes > 1)
+        minutesText = `${minutes} минути`;
+    if (seconds == 1)
+        secondsText = `${seconds} секунда`;
+    else if (seconds > 1)
+        secondsText = `${seconds} секунди`;
 
-    do {
-        r = Math.floor(Math.random() * 256);
-        g = Math.floor(Math.random() * 256);
-        b = Math.floor(Math.random() * 256);
+    $w("#upcomingOrderCountdown").text = `Остават: ${daysText} ${hoursText} ${minutesText} ${secondsText} до следващата поръчка.`;
 
-        totalBrightness = r + g + b;
-    } while (totalBrightness < minBrightness || totalBrightness > maxBrightness);
-
-    return `rgb(${r}, ${g}, ${b})`;
 }
 
 //

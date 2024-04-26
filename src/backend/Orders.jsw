@@ -13,7 +13,8 @@ export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
         address2: orderObj.address2,
         instructions: orderObj.instructions,
         date: orderObj.date,
-        time: orderObj.time,
+        deliveryTime: orderObj.time,
+        takeawayTime: tools.calculateTakeawayTime(orderObj.time),
         providerId: orderObj.providerId,
         price: chargeObj.amount // in cents
     };
