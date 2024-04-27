@@ -28,7 +28,7 @@ $w.onReady(async function () {
     RefreshProfile();
   });
   function listFood() {
-    $w("#menuRepeater").onItemReady(($w, itemData, index) => {
+    $w("#menuRepeater").forEachItem(($w, itemData, index) => {
       let price;
       let rating;
       let maxAmountPerDay;

@@ -2,6 +2,7 @@ import wixData from 'wix-data';
 import * as tools from 'public/tools';
 export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
     console.log("issueOrder has been called");
+
     const orderItem = {
         _id: tools.createId(),
         orderObj: orderObj,
@@ -14,7 +15,7 @@ export async function issueOrder(/*chargeId,*/ orderObj, chargeObj) {
         instructions: orderObj.instructions,
         date: orderObj.date,
         deliveryTime: orderObj.time,
-        takeawayTime: tools.calculateTakeawayTime(orderObj.time),
+        takeawayTime: await tools.calculateTakeawayTime(orderObj.time),
         providerId: orderObj.providerId,
         price: chargeObj.amount // in cents
     };

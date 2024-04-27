@@ -389,7 +389,6 @@ function displayTimeToNextOrder(upcomingOrder) { // TODO: FIX DAYS NOT WORKING
     let days = 0;
     let hours = 0;
     let minutes = 0;
-    let seconds = 0;
     let daysText = "";
     let hoursText = "";
     let minutesText = "";
@@ -401,7 +400,6 @@ function displayTimeToNextOrder(upcomingOrder) { // TODO: FIX DAYS NOT WORKING
         days = Math.floor(timeToNextOrder / (60 * 60 * 24));
         hours = Math.floor((timeToNextOrder % (60 * 60 * 24)) / (60 * 60));
         minutes = Math.floor((timeToNextOrder % (60 * 60)) / 60);
-        seconds = Math.floor(timeToNextOrder % 60);
     }
     else {
         $w("#upcomingOrderBox").collapse();
@@ -419,12 +417,8 @@ function displayTimeToNextOrder(upcomingOrder) { // TODO: FIX DAYS NOT WORKING
         minutesText = `${minutes} минута`;
     else if (minutes > 1)
         minutesText = `${minutes} минути`;
-    if (seconds == 1)
-        secondsText = `${seconds} секунда`;
-    else if (seconds > 1)
-        secondsText = `${seconds} секунди`;
 
-    $w("#upcomingOrderCountdown").text = `Остават: ${daysText} ${hoursText} ${minutesText} ${secondsText} до следващата поръчка.`;
+    $w("#upcomingOrderCountdown").text = `Остават: ${daysText} ${hoursText} ${minutesText} до следващата поръчка.`;
 
 }
 

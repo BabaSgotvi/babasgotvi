@@ -42,7 +42,7 @@ export function addMinutes(time, minutesToAdd) {
 export async function calculateRouteTime() {
     return 40;
 }
-export async function calculateTakeawayTime(deliveryTime) { // TODO FIX THIS
+export async function calculateTakeawayTime(deliveryTime) {
     const [hoursStr, minutesStr] = deliveryTime.split(':');
     let hours = parseInt(hoursStr);
     let minutes = parseInt(minutesStr);
@@ -50,7 +50,7 @@ export async function calculateTakeawayTime(deliveryTime) { // TODO FIX THIS
     totalMinutes -= await calculateRouteTime();
     let formattedHours = Math.floor(totalMinutes / 60);
     let formattedMinutes = totalMinutes % 60;
-    return `${formattedHours}:${formattedMinutes}`;
+    return formattedHours + ":" + formattedMinutes;
 }
 export function replaceFlags(text, flags, tags) {
     for (let i = 0; i < tags.length; i++) {
@@ -291,7 +291,7 @@ export function convertTime(amount, from, to) {
     return result;
 }
 export function createId() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*()_+-=<>?/.:,;[]{}';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'; // special chars are excluded as they interfere with the query params
     let id = '';
     for (let i = 0; i < 50; i++) {
         const randomIndex = Math.floor(Math.random() * characters.length);
