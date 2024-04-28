@@ -299,3 +299,48 @@ export function createId() {
     }
     return id;
 }
+function parseDateTime(dateStr, timeStr) {
+    // Parse the day and month from the date string
+    const [day, month] = dateStr.split("/").map(Number);
+    if (isNaN(day) || isNaN(month)) {
+        throw new Error("Invalid date format. Expected 'dd/mm'.");
+    }
+
+    // Parse the hour and minute from the time string
+    const [hour, minute] = timeStr.split(":").map(Number);
+    if (isNaN(hour) || isNaN(minute)) {
+        throw new Error("Invalid time format. Expected 'hh:mm'.");
+    }
+
+    return { day, month, hour, minute };
+}
+
+export function calculateTimeDifference(dateStr, timeStr) {
+    // Parse the date and time
+    const { day, month, hour, minute } = parseDateTime(dateStr, timeStr);
+
+    // Get the current date and year
+    const now = new Date();
+    const year = now.getFullYear();
+
+    // Create the future date object
+    const futureDate = new Date(year, month - 1, day, hour, minute);
+
+    // If the future date is in the past, return nulls
+    if (futureDate < now) {
+        return { days: 0, hours: 0, minutes: 0 };
+    }
+
+    // Calculate the difference in milliseconds
+    const diffInMilliseconds = futureDate.getTime() - now.getTime();
+
+    // Convert the difference to days, hours, and minutes
+    const totalMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+    const totalHours = Math.floor(totalMinutes / 60);
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+    const minutes = totalMinutes % 60;
+
+    // Return the calculated difference
+    return { days, hours, minutes };
+}

@@ -1,6 +1,7 @@
 BUSINESS TODO LIST
 
 PLATFORM:
+1. Add repetaer loading, as for now, it is limited to 12 items. ( IN HOME, MENU AND VIEWORDER)
 2. Finish FoodProfile.
 3. In Menu, filter foods based on their available days.
 3.5. In Tools, fix the orderCutoff, because its still acting a bit weird. 
