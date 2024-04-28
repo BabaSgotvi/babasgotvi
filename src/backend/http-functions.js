@@ -49,6 +49,6 @@ function refreshBackend() {
 }
 
 
-export async function post_recieveDeliveryStatus() {
+export async function post_recieveDeliveryStatus(request) {
 
 }
