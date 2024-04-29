@@ -304,8 +304,17 @@ async function refreshCalender() {
     flags = flags.filter((flag) => flag !== previousNowFlag);
     const nowFlag = { day: "day1", time: now, type: "now", id: tools.createId() }
     upcomingOrder = flags.find((flag) => flag.type === "order" && flag.time > now);
-    // get the time betwen now and the upcoming order
-    displayTimeToNextOrder(upcomingOrder);
+    if (passedSeconds != 61) {
+        let timeUntil = tools.calculateTimeDifference(upcomingOrder.date, upcomingOrder.takeawayTime);
+        let formattedTimeUntilText = tools.formatUntilOrder(timeUntil);
+        if (formattedTimeUntilText == "") {
+            $w("#upcomingOrderBox").collapse();
+        }
+        else {
+            $w("#upcomingOrderBox").expand();
+            $w("#upcomingOrderCountdown").text = formattedTimeUntilText + " до следващата поръчка";
+        }
+    }
     previousNowFlag = nowFlag;
     if (passedSeconds >= 60) {
         passedSeconds = 0;
@@ -323,7 +332,6 @@ function injectFlags(flags) {
 }
 
 function initializeHtml() {
-    console.log("Initializing HTML");
     const dates = getDates();
     $w("#html1").postMessage({
         type: "initialize",
@@ -346,7 +354,7 @@ async function getOrders() {
     let i = 0;
     let orderObjs = [];
     orders.forEach(order => {
-        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.takeawayTime), type: "order", id: order._id });
+        orderObjs.push({ day: getDay(order.date), time: parseToPureHours(order.takeawayTime), type: "order", id: order._id, date: order.date, takeawayTime: order.takeawayTime });
     });
     return orderObjs;
 }
@@ -383,43 +391,6 @@ function getDates() {
 function parseToPureHours(time) {
     const [hours, minutes] = time.split(":");
     return parseInt(hours) + (parseInt(minutes) / 60);
-}
-function displayTimeToNextOrder(upcomingOrder) { // TODO: FIX DAYS NOT WORKING
-    let timeToNextOrder = 0;
-    let days = 0;
-    let hours = 0;
-    let minutes = 0;
-    let daysText = "";
-    let hoursText = "";
-    let minutesText = "";
-    let secondsText = "";
-
-    if (upcomingOrder != null && upcomingOrder != undefined) {
-        $w("#upcomingOrderBox").expand();
-        timeToNextOrder = (upcomingOrder.time - now) * 60 * 60;
-        days = Math.floor(timeToNextOrder / (60 * 60 * 24));
-        hours = Math.floor((timeToNextOrder % (60 * 60 * 24)) / (60 * 60));
-        minutes = Math.floor((timeToNextOrder % (60 * 60)) / 60);
-    }
-    else {
-        $w("#upcomingOrderBox").collapse();
-        return;
-    }
-    if (days == 1)
-        daysText = `${days} ден`;
-    else if (days > 1)
-        daysText = `${days} дни`;
-    if (hours == 1)
-        hoursText = `${hours} час`;
-    else if (hours > 1)
-        hoursText = `${hours} часа`;
-    if (minutes == 1)
-        minutesText = `${minutes} минута`;
-    else if (minutes > 1)
-        minutesText = `${minutes} минути`;
-
-    $w("#upcomingOrderCountdown").text = `Остават: ${daysText} ${hoursText} ${minutesText} до следващата поръчка.`;
-
 }
 
 //

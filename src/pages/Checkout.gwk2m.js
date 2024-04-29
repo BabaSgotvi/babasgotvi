@@ -95,7 +95,7 @@ export function payNow() {
 }
 
 
-function createCard() {
+function createCard() { // these details are not stored anywhere except local storage ( user side ) as doing otherwise would be illegal
     let { month, year } = splitExpirationDate($w("#expiration").value);
     return {
         // @ts-ignore

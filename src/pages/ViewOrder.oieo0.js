@@ -61,6 +61,7 @@ function displayInfo() {
     }
     $w("#untilOrder").text = daysText + hoursText + minutesText + " до взимане на поръчката";
     $w("#takeawayDateTime").text = takeawayTime + ", " + takeawayDate + " ( " + tools.getDayOfWeek(takeawayDate, "BG", false) + " )";
+    $w("#earnAmount").text = "Печелите: " + earnAmount + " лв.";
 }
 setInterval(displayInfo, 1000);
 async function retrieveData() {

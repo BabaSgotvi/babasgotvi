@@ -1,8 +1,11 @@
 import { ok, serverError } from 'wix-http-functions';
-const apiKey = "zap";
+import { getSecret } from 'wix-secrets-backend';
+import wixData from 'wix-data';
+const zapKey = "zap";
 let isAwake = false;
 let secondsAwake = 0;
 let runIntervalId;
+
 // Makes sure the backend system (that is not triggered by user inputs) stays alive.
 // it is very important that the backend system keeps running, as it handles payouts, sending emails, etc. 
 // Which are very important events that are independent of user interaction
@@ -16,7 +19,7 @@ let runIntervalId;
 //
 export async function get_zapBackend(request) {
     let key = request.path[0];
-    if (key != apiKey) {
+    if (key != zapKey) {
         return serverError({ body: "Invalid key." });
     }
     if (isAwake) {
@@ -30,7 +33,7 @@ export async function get_zapBackend(request) {
 }
 export async function get_shutDownBackend(request) {
     let key = request.path[0];
-    if (key != apiKey) {
+    if (key != zapKey) {
         return serverError({ body: "Invalid key." });
     }
     if (!isAwake) {
@@ -49,6 +52,24 @@ function refreshBackend() {
 }
 
 
-export async function post_recieveDeliveryStatus(request) {
-
+export async function post_postDeliveryStatus(request) {
+    const body = JSON.parse(await request.body.text());
+    const status = body.status;
+    const orderId = body.orderId;
+    const order = await wixData.get("UpcomingOrders", orderId);
+    const key = body.key;
+    const deliveryApiKey = await getSecret("DELIVERY_API_KEY");
+    if (key != deliveryApiKey)
+        return serverError({ body: "Invalid key." });
+    if (order == null || order == undefined)
+        return serverError({ body: "Order could not be found." });
+    if (status == "delivered") {
+        // issue payouts
+        // send emails
+        // send email that asks for food review after 1.5 hour
+        return ok({ body: "Everything has been processed successfully." });
+    }
+    else {
+        return ok({ body: "All has been dealt with." });
+    }
 }

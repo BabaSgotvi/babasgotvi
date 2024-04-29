@@ -3,7 +3,7 @@ import { fetch } from 'wix-fetch';
 import * as tools from 'public/tools';
 import wixData from 'wix-data';
 
-export async function sendNotifications(orderObj, chargeObj, table) {
+export async function sendOrderInformationNotifications(orderObj, chargeObj, table) {
     /// Customer
     let subject = "Информация за Вашата поръчка";
     let name = tools.transliterate(orderObj.cardholder);
@@ -63,7 +63,7 @@ export async function sendNotifications(orderObj, chargeObj, table) {
     let routeTime = await tools.calculateRouteTime(providerAddress, orderObj.address1.formatted);
     let time = tools.addMinutes(orderObj.time, -routeTime);
 
-    subject = `Нова поръчка за ${payAmount} лв. | BabaSgotvi`;
+    subject = `Нова поръчка за ${payAmount} лв. | BabaSgotvi`; // TODO: FIX, THE PROVIDER SHOULD GET 75% NOT 100%
     body = `<div style="color: #000; font-size: calc(12px + 1vw); text-align: center;">Имате нова поръчка за ${payAmount} лв:<br><br>
             ${tableContent}<br><br>
             за ${orderObj.date} в ${time}<br><br>

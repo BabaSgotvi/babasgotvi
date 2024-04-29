@@ -344,3 +344,33 @@ export function calculateTimeDifference(dateStr, timeStr) {
     // Return the calculated difference
     return { days, hours, minutes };
 }
+export function formatUntilOrder(untilOrder) {
+    let daysText = "";
+    let hoursText = "";
+    let minutesText = "";
+    if (untilOrder.days == 1) {
+        daysText = untilOrder.days + " ден, ";
+    }
+    else if (untilOrder.days > 1) {
+        daysText = untilOrder.days + " дена, ";
+    }
+    if (untilOrder.hours == 1) {
+        hoursText = untilOrder.hours + " час, ";
+    }
+    else if (untilOrder.hours > 1) {
+        hoursText = untilOrder.hours + " часа, ";
+    }
+    if (untilOrder.minutes == 1) {
+        minutesText = untilOrder.minutes + " минута";
+    }
+    else if (untilOrder.minutes > 1) {
+        minutesText = untilOrder.minutes + " минути";
+    }
+    return daysText + hoursText + minutesText;
+}
+
+
+
+////
+
+

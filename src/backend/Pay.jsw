@@ -32,8 +32,7 @@ export async function charge(token, orderObj) {
             body: encodeBody(token, chargeObj)
         });
         if (response.status >= 200 && response.status < 300) { // transaction was successful
-            await issuePayout(orderObj.providerId, (chargeObj.amount * 25 / 100).toFixed(0));
-            await SendNotification.sendNotifications(orderObj, chargeObj, table);
+            await SendNotification.sendOrderInformationNotifications(orderObj, chargeObj, table);
             const ret = await response.json();
             return { "chargeId": ret.id };
         }
